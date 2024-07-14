@@ -31,14 +31,12 @@ We'll need the following entities to implement the service:
 | ------------------------------------------- | ------- | --------------------- |
 | userId | INTEGER | NOT NULL, PRIMARY KEY |
 | verificationToken | TEXT | NOT NULL |
-| FOREIGN KEY (userId) REFERENCES Users(\_id) |
 
 **Users_Reset_Password_Tokens**:
 | Column | Type | Constraints |
 | ------------------------------------------- | ------- | --------------------- |
 | userId | INTEGER | NOT NULL, PRIMARY KEY |
 | resetPasswordToken | TEXT | NOT NULL |
-| FOREIGN KEY (userId) REFERENCES Users(\_id) |
 
 **Categories**:
 | Column | Type | Constraints |
@@ -60,23 +58,18 @@ We'll need the following entities to implement the service:
 | discount | INTEGER | NOT NULL, CHECK (discount BETWEEN 0 AND 100) |
 | available | INTEGER | NOT NULL |
 | categoryId | INTEGER | NOT NULL |
-| FOREIGN KEY (categoryId) REFERENCES Categories(\_id) |
 
 **Products_Images**:
 | Column | Type | Constraints |
 | ------------------------------------------------- | ------- | ----------- |
 | productId | INTEGER | NOT NULL |
 | image | TEXT | NOT NULL |
-| PRIMARY KEY (productId, image) |
-| FOREIGN KEY (productId) REFERENCES Products(\_id) |
 
 **Users_Cart**:
 | Column | Type | Constraints |
 | ------------------------------------------------- | ------- | ----------------------------------------- |
 | userId | INTEGER | NOT NULL, PRIMARY KEY (userId, productId) |
 | productId | INTEGER | NOT NULL |
-| FOREIGN KEY (userId) REFERENCES Users(\_id) |
-| FOREIGN KEY (productId) REFERENCES Products(\_id) |
 
 **Orders**:
 | Column | Type | Constraints |
@@ -85,7 +78,6 @@ We'll need the following entities to implement the service:
 | creatorId | INTEGER | NOT NULL |
 | totalPrice | INTEGER | NOT NULL |
 | createdAt | INTEGER | NOT NULL |
-| FOREIGN KEY (creatorId) REFERENCES Users(\_id) |
 
 **Orders_Items**:
 | Column | Type | Constraints |
@@ -94,8 +86,6 @@ We'll need the following entities to implement the service:
 | productId | INTEGER | NOT NULL |
 | quantity | INTEGER | NOT NULL |
 | totalPrice | INTEGER | NOT NULL |
-| FOREIGN KEY (orderId) REFERENCES Orders(\_id) |
-| FOREIGN KEY (productId) REFERENCES Products(\_id) |
 
 **Chats**:
 | Column | Type | Constraints |
@@ -103,7 +93,6 @@ We'll need the following entities to implement the service:
 | \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
 | updatedAt | INTEGER | NOT NULL |
 | creatorId | INTEGER | NOT NULL |
-| FOREIGN KEY (creatorId) REFERENCES Users(\_id) |
 
 **Messages**:
 | Column | Type | Constraints |
@@ -113,9 +102,6 @@ We'll need the following entities to implement the service:
 | createdAt | INTEGER | NOT NULL |
 | chatId | INTEGER | NOT NULL |
 | senderId | INTEGER | NOT NULL |
-| FOREIGN KEY (chatId) REFERENCES Chats(\_id) |
-| FOREIGN KEY (senderId) REFERENCES Users(\_id) |
-| FOREIGN KEY (receiverId) REFERENCES Users(\_id) |
 
 **Messages_Notifications**:
 | Column | Type | Constraints |
@@ -126,9 +112,6 @@ We'll need the following entities to implement the service:
 | messageId | INTEGER | NOT NULL |
 | senderId | INTEGER | NOT NULL |
 | receiverId | INTEGER | NOT NULL |
-| FOREIGN KEY (messageId) REFERENCES Messages(\_id) |
-| FOREIGN KEY (senderId) REFERENCES Users(\_id) |
-| FOREIGN KEY (receiverId) REFERENCES Users(\_id) |
 
 **Orders_Notifications**:
 | Column | Type | Constraints |
@@ -139,9 +122,6 @@ We'll need the following entities to implement the service:
 | orderId | INTEGER | NOT NULL |
 | senderId | INTEGER | NOT NULL |
 | receiverId | INTEGER | NOT NULL |
-| FOREIGN KEY (orderId) REFERENCES Orders(\_id) |
-| FOREIGN KEY (senderId) REFERENCES Users(\_id) |
-| FOREIGN KEY (receiverId) REFERENCES Users(\_id) |
 
 ### Auth
 
@@ -156,11 +136,11 @@ for Google + Facebook and maybe others (Github?).
 ```
 post: /auth/register
 post: /auth/login
+get: /auth/refresh
+get: /auth/logout
 get: /auth/verifyAccount
 post: /auth/forgetPassword
 get: /auth/resetPassword
-get: /auth/refresh
-get: /auth/logout
 ```
 
 **Users**:
@@ -180,9 +160,8 @@ Get products:
   get: /products/new
   get: /products/random
   get: /products/popular
-  get: /products/category/categoryId
-Create, read, update and delete product
-  post: /products/
+Create, read, update and delete product:
+  post: /products/new
   get: /products/productId
   patch: /products/productId
   delete: /products/productId
@@ -192,10 +171,11 @@ Create, read, update and delete product
 
 ```
 get: /categories/
-post: /categories/
+post: /categories/new
 get: /categories/categoryId
 patch: /categories/categoryId
 delete: /categories/categoryId
+get: /categories/categoryId/products
 ```
 
 **Cart**:
@@ -218,17 +198,17 @@ delete: /notifications/notificationId
 **Chat**:
 
 ```
-Get chats and create new chat
+Get chats and create new chat:
   get: /chats/
-  post: /chats/
-Get, update and delete chat
+  post: /chats/new
+Get, update and delete chat:
   get: /chats/chatId
   patch: /chats/chatId
   delete: /chats/chatId
-Get chat messages and create new message
+Get chat messages and create new message:
   get: /chats/chatId/messages
-  post: /chats/chatId/messages
-Get, update and delete message
+  post: /chats/chatId/messages/new
+Get, update and delete message:
   get: /chats/chatId/messages/messageId
   patch: /chats/chatId/messages/messageId
   delete: /chats/chatId/messages/messageId
