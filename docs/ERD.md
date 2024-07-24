@@ -12,44 +12,44 @@ We'll need the following entities to implement the service:
 
 **Users**:
 | Column | Type | Constraints |
-| ---------- | ------- | --------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | name | TEXT | NOT NULL |
-| email | TEXT | NOT NULL |
+| email | TEXT | UNIQUE NOT NULL |
 | password | TEXT | NOT NULL |
 | avatar | TEXT | DEFAULT 'defaultAvatar.png' |
 | createdAt | INTEGER | NOT NULL |
 | updatedAt | INTEGER | NOT NULL |
 | isVerified | BOOLEAN | NOT NULL DEFAULT 0 |
-| role | INTEGER | NOT NULL DEFAULT 1000 |
+| role | INTEGER | NOT NULL DEFAULT ROLES_LIST.User |
 | phone | TEXT | |
 | country | TEXT | |
 | city | TEXT | |
 
 **Users_Verification_Tokens**:
 | Column | Type | Constraints |
-| ------------------------------------------- | ------- | --------------------- |
-| userId | INTEGER | NOT NULL, PRIMARY KEY |
+| ------ | ---- | ----------- |
+| userId | INTEGER | NOT NULL, PK, FK |
 | verificationToken | TEXT | NOT NULL |
 
 **Users_Reset_Password_Tokens**:
 | Column | Type | Constraints |
-| ------------------------------------------- | ------- | --------------------- |
-| userId | INTEGER | NOT NULL, PRIMARY KEY |
+| ------ | ---- | ----------- |
+| userId | INTEGER | NOT NULL, PK, FK |
 | resetPasswordToken | TEXT | NOT NULL |
 
 **Categories**:
 | Column | Type | Constraints |
-| --------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
-| title | TEXT | NOT NULL |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
+| title | TEXT | UNIQUE NOT NULL |
 | image | TEXT | NOT NULL |
 | createdAt | INTEGER | NOT NULL |
 
 **Products**:
 | Column | Type | Constraints |
-| ---------------------------------------------------- | ------- | -------------------------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | title | TEXT | NOT NULL |
 | description | TEXT | NOT NULL |
 | price | INTEGER | NOT NULL |
@@ -57,71 +57,72 @@ We'll need the following entities to implement the service:
 | updatedAt | INTEGER | NOT NULL |
 | discount | INTEGER | NOT NULL, CHECK (discount BETWEEN 0 AND 100) |
 | available | INTEGER | NOT NULL |
-| categoryId | INTEGER | NOT NULL |
+| categoryId | INTEGER | NOT NULL, FK |
 
 **Products_Images**:
 | Column | Type | Constraints |
-| ------------------------------------------------- | ------- | ----------- |
-| productId | INTEGER | NOT NULL |
-| image | TEXT | NOT NULL |
+| ------ | ---- | ----------- |
+| productId | INTEGER | NOT NULL, PK, FK |
+| image | TEXT | NOT NULL, PK |
 
-**Users_Cart**:
+**Users_Carts**:
 | Column | Type | Constraints |
-| ------------------------------------------------- | ------- | ----------------------------------------- |
-| userId | INTEGER | NOT NULL, PRIMARY KEY (userId, productId) |
-| productId | INTEGER | NOT NULL |
+| ------ | ---- | ----------- |
+| userId | INTEGER | NOT NULL, PK, FK |
+| productId | INTEGER | NOT NULL, PK, FK |
 
 **Orders**:
 | Column | Type | Constraints |
-| ---------------------------------------------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | creatorId | INTEGER | NOT NULL |
 | totalPrice | INTEGER | NOT NULL |
 | createdAt | INTEGER | NOT NULL |
 
 **Orders_Items**:
 | Column | Type | Constraints |
-| ------------------------------------------------- | ------- | ------------------------------------------ |
-| orderId | INTEGER | NOT NULL, PRIMARY KEY (orderId, productId) |
-| productId | INTEGER | NOT NULL |
+| ------ | ---- | ----------- |
+| orderId | INTEGER | NOT NULL, PK, FK |
+| productId | INTEGER | NOT NULL, PK, FK |
 | quantity | INTEGER | NOT NULL |
 | totalPrice | INTEGER | NOT NULL |
 
 **Chats**:
 | Column | Type | Constraints |
-| ---------------------------------------------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | updatedAt | INTEGER | NOT NULL |
-| creatorId | INTEGER | NOT NULL |
+| creatorId | INTEGER | NOT NULL, FK |
+| guestId | INTEGER | NOT NULL, FK |
 
 **Messages**:
 | Column | Type | Constraints |
-| ----------------------------------------------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | content | TEXT | NOT NULL |
 | createdAt | INTEGER | NOT NULL |
-| chatId | INTEGER | NOT NULL |
-| senderId | INTEGER | NOT NULL |
+| chatId | INTEGER | NOT NULL, FK |
+| senderId | INTEGER | NOT NULL, FK |
 
 **Messages_Notifications**:
 | Column | Type | Constraints |
-| ------------------------------------------------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | isRead | BOOLEAN | NOT NULL DEFAULT 0 |
 | createdAt | INTEGER | NOT NULL |
-| messageId | INTEGER | NOT NULL |
-| senderId | INTEGER | NOT NULL |
-| receiverId | INTEGER | NOT NULL |
+| messageId | INTEGER | NOT NULL, FK |
+| senderId | INTEGER | NOT NULL, FK |
+| receiverId | INTEGER | NOT NULL, FK |
 
 **Orders_Notifications**:
 | Column | Type | Constraints |
-| ----------------------------------------------- | ------- | ------------------------- |
-| \_id | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| ------ | ---- | ----------- |
+| \_id | INTEGER | PK AUTOINCREMENT |
 | isRead | BOOLEAN | NOT NULL DEFAULT 0 |
 | createdAt | INTEGER | NOT NULL |
-| orderId | INTEGER | NOT NULL |
-| senderId | INTEGER | NOT NULL |
-| receiverId | INTEGER | NOT NULL |
+| orderId | INTEGER | NOT NULL, FK |
+| senderId | INTEGER | NOT NULL, FK |
+| receiverId | INTEGER | NOT NULL, FK |
 
 ### Auth
 
@@ -131,7 +132,7 @@ for Google + Facebook and maybe others (Github?).
 
 ## APIs
 
-**Authentication**:
+**Auth**:
 
 ```
 post: /auth/register
@@ -141,47 +142,52 @@ get: /auth/logout
 get: /auth/verifyAccount
 post: /auth/forgetPassword
 get: /auth/resetPassword
+post: /auth/resetPassword
 ```
 
 **Users**:
 
 ```
-get: /users/new
+get: /users?order=old|new
 get: /users/userId
 patch: /users/userId
 delete: /users/userId
 ```
 
-**Product**:
-
-```
-Get products:
-  get: /products/all
-  get: /products/new
-  get: /products/random
-  get: /products/popular
-Create, read, update and delete product:
-  post: /products/new
-  get: /products/productId
-  patch: /products/productId
-  delete: /products/productId
-```
-
 **Categories**:
 
 ```
-get: /categories/
-post: /categories/new
+get: /categories?order=old|new
+post: /categories
 get: /categories/categoryId
 patch: /categories/categoryId
 delete: /categories/categoryId
-get: /categories/categoryId/products
+get: /categories/categoryId/products?order=old|new
 ```
 
-**Cart**:
+**Products**:
 
 ```
-get: /cart/
+get: /products?order=old|new|random
+post: /products
+get: /products/productId
+patch: /products/productId
+delete: /products/productId
+```
+
+**Orders**:
+
+```
+get: /orders
+post: /orders
+get: /orders/orderId
+delete: /orders/orderId
+```
+
+**Carts**:
+
+```
+get: /cart
 post: /cart/productId
 delete: /cart/productId
 ```
@@ -190,27 +196,23 @@ delete: /cart/productId
 
 ```
 get: /notifications
-get: /notifications/notificationId
 patch: /notifications/notificationId
 delete: /notifications/notificationId
 ```
 
-**Chat**:
+**Chats**:
 
 ```
 Get chats and create new chat:
-  get: /chats/
-  post: /chats/new
-Get, update and delete chat:
+  get: /chats
+  post: /chats
+Get and delete chat:
   get: /chats/chatId
-  patch: /chats/chatId
   delete: /chats/chatId
 Get chat messages and create new message:
   get: /chats/chatId/messages
-  post: /chats/chatId/messages/new
-Get, update and delete message:
-  get: /chats/chatId/messages/messageId
-  patch: /chats/chatId/messages/messageId
+  post: /chats/chatId/messages
+Delete message:
   delete: /chats/chatId/messages/messageId
 ```
 
