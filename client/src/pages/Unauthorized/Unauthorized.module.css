@@ -1,0 +1,17 @@
+.unauthorized {
+  width: 100%;
+  min-height: 100vh;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.unauthorized h2 {
+  font-weight: 700;
+}
+
+.unauthorized p {
+  font-size: 14px;
+}

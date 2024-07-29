@@ -1,0 +1,17 @@
+.no_resource_found {
+  width: 100%;
+  min-height: 100vh;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.no_resource_found h2 {
+  font-weight: 700;
+}
+
+.no_resource_found p {
+  font-size: 14px;
+}

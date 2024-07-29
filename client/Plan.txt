@@ -1,0 +1,22 @@
+NestMart Futures
+
+Auth:
+  - Register page
+  - Login page
+  - ForgetPassword page
+
+Home:
+  - Header <Logo - ul<Home, About, Contact> - ul<Notifications, Cart, Account>>
+  - <CategoriesList />, <NewProductsList />, <BannerSlider />, <RandomProducts /> -> public
+  - <OurService /> -> for Home
+  - <ShopByCategories /> -> public
+  - <NewAddedProducts /> -> public
+  - <Banner /> -> public
+  - <Footer /> -> public
+
+About, Contact, 404:
+  - Only layout.
+
+Chats:
+
+Notifications:

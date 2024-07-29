@@ -1,0 +1,44 @@
+.not_available_page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 15px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.not_available_page h2 {
+  font-weight: 700;
+}
+
+.not_available_page p {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.not_available_page .buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.not_available_page .buttons button {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 45px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text);
+  color: #fff;
+  background-color: var(--main);
+  border-radius: 6px;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  -ms-border-radius: 6px;
+  -o-border-radius: 6px;
+}

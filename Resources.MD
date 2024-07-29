@@ -18,5 +18,8 @@ https://sybridge.com/how-to-write-an-engineering-requirements-document/
 Restful API:
 https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/
 
+TS with express:
+https://dev.to/macmacky/get-better-with-typescript-using-express-3ik6
+
 E-commerce ERD example DB:
 https://vertabelo.com/blog/er-diagram-for-online-shop/

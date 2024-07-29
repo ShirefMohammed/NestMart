@@ -29,15 +29,15 @@ CREATE TABLE Users_Reset_Password_Tokens (
 
 CREATE TABLE Categories (
   _id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  title       TEXT NOT NULL,
+  title       TEXT UNIQUE NOT NULL,
   image       TEXT NOT NULL,
   createdAt   INTEGER NOT NULL
 );
 
 CREATE TABLE Products (
   _id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  title         TEXT NOT NULL,
-  description   TEXT NOT NULL,
+  title         TEXT NOT NULL UNIQUE,
+  desc          TEXT NOT NULL,
   price         INTEGER NOT NULL,
   createdAt     INTEGER NOT NULL,
   updatedAt     INTEGER NOT NULL,
@@ -54,12 +54,12 @@ CREATE TABLE Products_Images (
   FOREIGN KEY (productId) REFERENCES Products(_id)
 );
 
-CREATE TABLE Users_Cart (
+CREATE TABLE Users_Carts (
   userId      INTEGER NOT NULL,
   productId   INTEGER NOT NULL,
   PRIMARY KEY (userId, productId),
   FOREIGN KEY (userId) REFERENCES Users(_id),
-  FOREIGN KEY (productId) REFERENCES Products(id)  -- Assuming there is a Products table
+  FOREIGN KEY (productId) REFERENCES Products(_id)
 );
 
 CREATE TABLE Orders (
@@ -84,7 +84,9 @@ CREATE TABLE Chats (
   _id          INTEGER PRIMARY KEY AUTOINCREMENT,
   updatedAt    INTEGER NOT NULL,
   creatorId    INTEGER NOT NULL,
-  FOREIGN KEY (creatorId) REFERENCES Users(_id)
+  guestId      INTEGER NOT NULL,
+  FOREIGN KEY (creatorId) REFERENCES Users(_id),
+  FOREIGN KEY (guestId) REFERENCES Users(_id)
 );
 
 CREATE TABLE Messages (
@@ -94,8 +96,7 @@ CREATE TABLE Messages (
   chatId       INTEGER NOT NULL,
   senderId     INTEGER NOT NULL,
   FOREIGN KEY (chatId) REFERENCES Chats(_id),
-  FOREIGN KEY (senderId) REFERENCES Users(_id),
-  FOREIGN KEY (receiverId) REFERENCES Users(_id)
+  FOREIGN KEY (senderId) REFERENCES Users(_id)
 );
 
 CREATE TABLE Messages_Notifications (
