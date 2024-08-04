@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 
-import { FullResBody } from "./apiTypes";
+import { FullResBody } from "@shared/types/apiTypes";
 
 export type ExpressHandler<ReqBody, ResBody> = RequestHandler<
   any,

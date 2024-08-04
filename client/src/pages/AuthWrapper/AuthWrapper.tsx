@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useLogout } from "../../hooks";
 import style from "./AuthWrapper.module.css";
 
-const Authentication = () => {
+const AuthWrapper = () => {
   const accessToken = useSelector((state: any) => state.accessToken);
 
   const navigate = useNavigate();
@@ -36,4 +36,4 @@ const Authentication = () => {
   );
 };
 
-export default Authentication;
+export default AuthWrapper;

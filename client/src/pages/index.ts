@@ -7,5 +7,7 @@ export { default as ServerError } from "./ServerError/ServerError.tsx";
 export { default as Unauthorized } from "./Unauthorized/Unauthorized.tsx";
 export { default as NoResourceFound } from "./NoResourceFound/NoResourceFound.tsx";
 export { default as NoTFoundPage } from "./NoTFoundPage/NoTFoundPage.tsx";
-export { default as MainContent } from "./MainContent/MainContent.jsx";
+export { default as AdminWrapper } from "./AdminWrapper/AdminWrapper.tsx";
+export { default as MainWrapper } from "./MainWrapper/MainWrapper.tsx";
 export { default as Home } from "./Home/Home.jsx";
+export { default as Chat } from "./Chat/Chat.tsx";

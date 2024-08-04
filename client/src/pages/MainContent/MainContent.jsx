@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 
-import { Home} from "../";
+// import { Home} from "../";
 import { RequireAuth } from "../../components";
 import { ROLES_LIST } from "../../utils/rolesList";
 import style from "./MainContent.module.css";
@@ -11,15 +11,13 @@ import style from "./MainContent.module.css";
 const MainContent = ({ socket }) => {
   return (
     <div className={style.main_content}>
-      {/* <Sidebar /> */}
+      {/* <Header /> */}
+      xsksa
 
       <section className={style.current_page}>
-        {/* <Navbar /> */}
-
         <Routes>
           {/* Public Routes */}
-
-          <Route path="/" element={<Home />} />
+          {/* <Route path="/" element={<Home />} /> */}
           {/* <Route path="/products/:productId" element={<Video socket={socket} />} /> */}
           {/* <Route path="/users/:userId" element={<Profile socket={socket} />} /> */}
 
@@ -33,6 +31,8 @@ const MainContent = ({ socket }) => {
           </Route>
         </Routes>
       </section>
+
+      {/* <Footer /> */}
     </div>
   );
 };

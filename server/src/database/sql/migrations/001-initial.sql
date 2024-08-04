@@ -7,7 +7,7 @@ CREATE TABLE Users (
   createdAt    INTEGER NOT NULL,
   updatedAt    INTEGER NOT NULL,
   isVerified   BOOLEAN NOT NULL DEFAULT 0,
-  role         INTEGER NOT NULL DEFAULT 1000,
+  role         INTEGER NOT NULL DEFAULT 2001,
   phone        TEXT,
   country      TEXT,
   city         TEXT
@@ -81,12 +81,14 @@ CREATE TABLE Orders_Items (
 );
 
 CREATE TABLE Chats (
-  _id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  updatedAt    INTEGER NOT NULL,
-  creatorId    INTEGER NOT NULL,
-  guestId      INTEGER NOT NULL,
-  FOREIGN KEY (creatorId) REFERENCES Users(_id),
-  FOREIGN KEY (guestId) REFERENCES Users(_id)
+  _id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  updatedAt           INTEGER NOT NULL,
+  customerId          INTEGER NOT NULL,
+  lastMsgId           INTEGER,
+  lastNotReadMsgId    INTEGER,
+  FOREIGN KEY (customerId) REFERENCES Users(_id),
+  FOREIGN KEY (lastMsgId) REFERENCES Messages(_id),
+  FOREIGN KEY (lastNotReadMsgId) REFERENCES Messages(_id)
 );
 
 CREATE TABLE Messages (
@@ -103,7 +105,7 @@ CREATE TABLE Messages_Notifications (
   _id          INTEGER PRIMARY KEY AUTOINCREMENT,
   isRead       BOOLEAN NOT NULL DEFAULT 0,
   createdAt    INTEGER NOT NULL,
-  messageId     INTEGER NOT NULL,
+  messageId    INTEGER NOT NULL,
   senderId     INTEGER NOT NULL,
   receiverId   INTEGER NOT NULL,
   FOREIGN KEY (messageId) REFERENCES Messages(_id),

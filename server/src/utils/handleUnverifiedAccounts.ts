@@ -3,9 +3,9 @@ import { db } from "../database";
 export const handleUnverifiedAccounts = async () => {
   setInterval(async () => {
     try {
-      const users = await db.getUnverifiedUsers("_id, createdAt");
+      const unverifiedUsers = await db.getUnverifiedUsers("_id, createdAt");
 
-      users.map(async (user: any) => {
+      unverifiedUsers.map(async (user: any) => {
         if (Date.now() - user?.createdAt > 24 * 60 * 60 * 1000) {
           await db.deleteUser(user._id);
         }

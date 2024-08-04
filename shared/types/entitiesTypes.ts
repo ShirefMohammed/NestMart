@@ -8,9 +8,9 @@ export interface User {
   updatedAt: number;
   isVerified: boolean;
   role: number;
-  phone?: string;
-  country?: string;
-  city?: string;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
 }
 
 export interface UserVerificationToken {
@@ -65,8 +65,12 @@ export interface OrderItem {
 export interface Chat {
   _id: number;
   updatedAt: number;
-  creatorId: number;
-  guestId: number;
+  customerId: number;
+  lastMsgId: number | null;
+  lastNotReadMsgId: number | null;
+  customer?: User;
+  lastMsg?: Message | null;
+  lastNotReadMsg?: Message | null;
 }
 
 export interface Message {
@@ -75,6 +79,7 @@ export interface Message {
   createdAt: number;
   chatId: number;
   senderId: number;
+  sender?: User | null;
 }
 
 export interface MessageNotification {
@@ -84,6 +89,9 @@ export interface MessageNotification {
   messageId: number;
   senderId: number;
   receiverId: number;
+  message?: Message;
+  sender?: User;
+  receiver?: User;
 }
 
 export interface OrderNotification {
@@ -93,4 +101,7 @@ export interface OrderNotification {
   orderId: number;
   senderId: number;
   receiverId: number;
+  order?: Order;
+  sender?: User;
+  receiver?: User;
 }

@@ -5,6 +5,8 @@ export interface UsersDao {
 
   findUserByEmail(email: string, selectedFields?: string): Promise<any>;
 
+  findSuperAdmin(selectedFields?: string): Promise<any>;
+
   findUserByVerificationToken(
     verificationToken: string,
     selectedFields?: string,
@@ -32,6 +34,14 @@ export interface UsersDao {
   deleteUser(userId: number): Promise<void>;
 
   getUsers(
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any[]>;
+
+  searchUsers(
+    searchKey: string,
     order?: number,
     limit?: number,
     skip?: number,

@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
 
+import { LoginRequest, LoginResponse } from "@shared/types/apiTypes";
+
 import axios from "../../api/axios";
 import { useNotify } from "../../hooks";
 import { setAccessToken } from "../../store/slices/accessTokenSlice";
@@ -57,21 +59,21 @@ const Login = () => {
     try {
       setLoginLoad(true);
 
-      const res = await axios.post(
-        `/auth/login`,
-        {
-          email: email,
-          password: password,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        },
-      );
+      const reqBody: LoginRequest = {
+        email: email,
+        password: password,
+      };
 
-      dispatch(setUser({ ...currentUser, ...res.data?.data?.user }));
-      dispatch(setAccessToken(res.data?.data?.accessToken));
-      notify("success", res.data.message);
+      const res = await axios.post(`/auth/login`, reqBody, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+
+      const resData: LoginResponse = res.data?.data;
+
+      dispatch(setUser({ ...currentUser, ...resData?.user }));
+      dispatch(setAccessToken(resData?.accessToken));
+      notify("success", res.data?.message);
 
       navigate(from, { replace: true });
     } catch (err) {

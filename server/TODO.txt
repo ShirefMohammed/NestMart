@@ -1,6 +1,4 @@
 // TODO: find super admin
 // TODO: Delete all user related resources
 // TODO: Add lastMsg and lastNotReadMsg to the chat
-// TODO: Delete chat messages notifications
-// TODO: Delete msg notification
 // TODO: Delete order notification

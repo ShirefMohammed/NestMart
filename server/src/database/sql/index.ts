@@ -66,6 +66,18 @@ export class sqliteDB implements Datastore {
     }
   }
 
+  async findSuperAdmin(selectedFields?: string): Promise<any> {
+    try {
+      return this.db.get(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Users WHERE role = ?`,
+        ROLES_LIST.SuperAdmin,
+      );
+    } catch (err) {
+      console.error("Error in findSuperAdmin:", err);
+      throw err;
+    }
+  }
+
   async findUserByVerificationToken(
     verificationToken: string,
     selectedFields?: string,
@@ -314,6 +326,29 @@ export class sqliteDB implements Datastore {
       );
     } catch (err) {
       console.error("Error in getUsers:", err);
+      throw err;
+    }
+  }
+
+  async searchUsers(
+    searchKey: string,
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any[]> {
+    try {
+      return this.db.all(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Users 
+        WHERE name LIKE ? OR email LIKE ? 
+        ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
+        ${limit ? `LIMIT ${limit}` : ""} 
+        ${skip ? `OFFSET ${skip}` : ""}`,
+        `%${searchKey}%`,
+        `%${searchKey}%`,
+      );
+    } catch (err) {
+      console.error("Error in searchUsers:", err);
       throw err;
     }
   }
@@ -879,49 +914,73 @@ export class sqliteDB implements Datastore {
 
   /* Chat Operations */
 
-  async findChatById(chatId: number): Promise<any> {
+  async findChatById(chatId: number, selectedFields?: string): Promise<any> {
     try {
-      return await this.db.get(`SELECT * FROM Chats WHERE _id = ?`, chatId);
+      return this.db.get(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Chats WHERE _id = ?`,
+        chatId,
+      );
     } catch (err) {
       console.error("Error in findChatById:", err);
       throw err;
     }
   }
 
-  async findChatByUsers(creatorId: number, guestId: number): Promise<any> {
+  async findChatByCustomerId(
+    customerId: number,
+    selectedFields?: string,
+  ): Promise<any> {
     try {
-      return await this.db.get(
-        `SELECT * FROM Chats WHERE creatorId = ? AND guestId = ?`,
-        creatorId,
-        guestId,
+      return this.db.get(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Chats WHERE customerId = ?`,
+        customerId,
       );
     } catch (err) {
-      console.error("Error in findChatByUsers:", err);
+      console.error("Error in findChatByCustomerId:", err);
       throw err;
     }
   }
 
-  async createChat(creatorId: number, guestId: number): Promise<void> {
+  async createChat(customerId: number): Promise<any> {
     try {
-      await this.db.run(
-        "INSERT INTO Chats (creatorId, guestId, updatedAt) VALUES (?,?,?)",
-        creatorId,
-        guestId,
+      const result = await this.db.run(
+        "INSERT INTO Chats (customerId, updatedAt) VALUES (?,?)",
+        customerId,
         Date.now(),
       );
+
+      return await this.findChatById(result.lastID!);
     } catch (err) {
       console.error("Error in createChat:", err);
       throw err;
     }
   }
 
-  async updateChat(chatId: number, _chat: Chat): Promise<void> {
+  async updateChat(chatId: number, chat: Partial<Chat>): Promise<any> {
     try {
-      await this.db.run(
+      if ("lastMsgId" in chat) {
+        await this.db.run(
+          "UPDATE Chats SET lastMsgId = ? WHERE _id = ?",
+          chat.lastMsgId,
+          chatId,
+        );
+      }
+
+      if ("lastNotReadMsgId" in chat) {
+        await this.db.run(
+          "UPDATE Chats SET lastNotReadMsgId = ? WHERE _id = ?",
+          chat.lastNotReadMsgId,
+          chatId,
+        );
+      }
+
+      const result = await this.db.run(
         "UPDATE Chats SET updatedAt = ? WHERE _id = ?",
         Date.now(),
         chatId,
       );
+
+      return await this.findChatById(result.lastID!);
     } catch (err) {
       console.error("Error in updateChat:", err);
       throw err;
@@ -937,14 +996,23 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async getChats(userId: number): Promise<any> {
+  async getChats(customerId: number): Promise<any> {
     try {
       return this.db.all(
-        `SELECT * FROM Chats WHERE creatorId = ? ORDER BY updatedAt DESC`,
-        userId,
+        `SELECT * FROM Chats WHERE customerId = ? ORDER BY updatedAt DESC`,
+        customerId,
       );
     } catch (err) {
       console.error("Error in getChats:", err);
+      throw err;
+    }
+  }
+
+  async getAllChats(): Promise<any> {
+    try {
+      return this.db.all(`SELECT * FROM Chats ORDER BY updatedAt DESC`);
+    } catch (err) {
+      console.error("Error in getAllChats:", err);
       throw err;
     }
   }
@@ -958,35 +1026,79 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async findMessageById(messageId: number): Promise<any> {
+  async deleteChatMessagesNotifications(chatId: number): Promise<void> {
     try {
-      return this.db.get(`SELECT * FROM Messages WHERE _id = ?`, messageId);
+      // Fetch all message IDs related to the chatId
+      const chatMessages = await this.db.all(
+        "SELECT _id FROM Messages WHERE chatId = ?",
+        chatId,
+      );
+
+      // Extract the message IDs from the fetched chat messages
+      const messageIds = chatMessages.map((message) => message._id);
+
+      // Delete notifications for all these messages
+      const placeholders = messageIds.map(() => "?").join(",");
+      await this.db.run(
+        `DELETE FROM Messages_Notifications WHERE messageId IN (${placeholders})`,
+        ...messageIds,
+      );
+    } catch (err) {
+      console.error("Error in deleteChatMessagesNotifications:", err);
+      throw err;
+    }
+  }
+
+  async findMessageById(
+    messageId: number,
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      return this.db.get(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Messages WHERE _id = ?`,
+        messageId,
+      );
     } catch (err) {
       console.error("Error in findMessageById:", err);
       throw err;
     }
   }
 
+  async findLastMessageBeforeTime(
+    createdAt: number,
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      return this.db.get(
+        `
+        SELECT ${selectedFields ? selectedFields : "*"}
+        FROM Messages
+        WHERE createdAt < ?
+        ORDER BY createdAt DESC
+        LIMIT 1
+      `,
+        createdAt,
+      );
+    } catch (err) {
+      console.error("Error in findLastMessageBeforeTime:", err);
+      throw err;
+    }
+  }
+
   async createMessage(chatId: number, senderId: number, content: string) {
     try {
-      const createdAt = Date.now();
-
-      // Insert the new message and get the last inserted row ID
       const result = await this.db.run(
         "INSERT INTO Messages (chatId, senderId, content, createdAt) VALUES (?,?,?,?)",
         chatId,
         senderId,
         content,
-        createdAt,
+        Date.now(),
       );
 
-      // Retrieve the inserted message using the last inserted ID
-      const message = await this.db.get(
+      return await this.db.get(
         "SELECT * FROM Messages WHERE _id = ?",
         result.lastID,
       );
-
-      return message;
     } catch (err) {
       console.error("Error in createMessage:", err);
       throw err;
@@ -998,6 +1110,18 @@ export class sqliteDB implements Datastore {
       await this.db.run("DELETE FROM Messages WHERE _id = ?", messageId);
     } catch (err) {
       console.error("Error in deleteMessage:", err);
+      throw err;
+    }
+  }
+
+  async deleteMessageNotification(messageId: number): Promise<void> {
+    try {
+      await this.db.run(
+        "DELETE FROM Messages_Notifications WHERE messageId = ?",
+        messageId,
+      );
+    } catch (err) {
+      console.error("Error in deleteMessageNotification:", err);
       throw err;
     }
   }
@@ -1095,12 +1219,12 @@ export class sqliteDB implements Datastore {
     try {
       if (type === "message") {
         await this.db.run(
-          `UPDATE Messages_Notifications SET isRead = 1 WHERE _Id = ?`,
+          `UPDATE Messages_Notifications SET isRead = 1 WHERE _id = ?`,
           notificationId,
         );
       } else if (type === "order") {
         await this.db.run(
-          `UPDATE Orders_Notifications SET isRead = 1 WHERE _Id = ?`,
+          `UPDATE Orders_Notifications SET isRead = 1 WHERE _id = ?`,
           notificationId,
         );
       }
@@ -1117,12 +1241,12 @@ export class sqliteDB implements Datastore {
     try {
       if (type === "message") {
         await this.db.run(
-          `DELETE FROM Messages_Notifications WHERE _Id = ?`,
+          `DELETE FROM Messages_Notifications WHERE _id = ?`,
           notificationId,
         );
       } else if (type === "order") {
         await this.db.run(
-          `DELETE FROM Orders_Notifications WHERE _Id = ?`,
+          `DELETE FROM Orders_Notifications WHERE _id = ?`,
           notificationId,
         );
       }

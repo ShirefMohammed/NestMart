@@ -2,6 +2,8 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
 
+import { ForgetPasswordRequest } from "@shared/types/apiTypes";
+
 import axios from "../../api/axios";
 import style from "./ForgetPassword.module.css";
 
@@ -36,18 +38,16 @@ const ForgetPassword = () => {
     try {
       setForgetPasswordLoad(true);
 
-      const res = await axios.post(
-        `/auth/forgetPassword`,
-        {
-          email: email,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        },
-      );
+      const reqBody: ForgetPasswordRequest = {
+        email: email,
+      };
 
-      setSuccessMsg(res.data.message);
+      const res = await axios.post(`/auth/forgetPassword`, reqBody, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+
+      setSuccessMsg(res.data?.message);
       if (successRef.current) successRef.current.focus();
     } catch (err) {
       if (!err?.response) {

@@ -51,7 +51,7 @@ We'll need the following entities to implement the service:
 | ------ | ---- | ----------- |
 | \_id | INTEGER | PK AUTOINCREMENT |
 | title | TEXT | NOT NULL |
-| description | TEXT | NOT NULL |
+| desc | TEXT | NOT NULL |
 | price | INTEGER | NOT NULL |
 | createdAt | INTEGER | NOT NULL |
 | updatedAt | INTEGER | NOT NULL |
@@ -92,8 +92,9 @@ We'll need the following entities to implement the service:
 | ------ | ---- | ----------- |
 | \_id | INTEGER | PK AUTOINCREMENT |
 | updatedAt | INTEGER | NOT NULL |
-| creatorId | INTEGER | NOT NULL, FK |
-| guestId | INTEGER | NOT NULL, FK |
+| customerId | INTEGER | NOT NULL, FK |
+| lastMsgId | INTEGER | FK |
+| lastNotReadMsgId | INTEGER | FK |
 
 **Messages**:
 | Column | Type | Constraints |

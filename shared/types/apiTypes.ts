@@ -63,6 +63,11 @@ export interface GetUsersResponse {
   users: User[];
 }
 
+export type SearchUsersRequest = null;
+export interface SearchUsersResponse {
+  users: User[];
+}
+
 export type GetUserRequest = null;
 export interface GetUserResponse {
   user: User;
@@ -186,9 +191,14 @@ export interface GetChatResponse {
   chat: Chat;
 }
 
-export type CreateChatRequest = Pick<Chat, "guestId">;
+export type CreateChatRequest = Partial<Pick<Chat, "customerId">>;
 export interface CreateChatResponse {
-  chat: Partial<Chat> & { creator: User; guest: User };
+  chat: Chat;
+}
+
+export type UpdateChatRequest = Pick<Chat, "lastNotReadMsgId">;
+export interface UpdateChatResponse {
+  chat: Chat;
 }
 
 export interface DeleteChatRequest {}

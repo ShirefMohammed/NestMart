@@ -13,41 +13,59 @@ import {
   GetChatResponse,
   GetChatsRequest,
   GetChatsResponse,
+  UpdateChatRequest,
+  UpdateChatResponse,
 } from "@shared/types/apiTypes";
+import { Chat, Message, User } from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
 import { createImagesUrl } from "../utils/createImagesUrl";
 import { httpStatusText } from "../utils/httpStatusText";
+import { ROLES_LIST } from "../utils/rolesList";
+
+// TODO: Remember notifications
 
 export const getChats: ExpressHandler<
   GetChatsRequest,
   GetChatsResponse
 > = async (_req, res, next) => {
   try {
-    const chats = await db.getChats(res.locals.userInfo._id);
+    let chats: Chat[];
 
-    // Handle chats users
+    if (
+      res.locals.userInfo.role === ROLES_LIST.Admin ||
+      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
+    ) {
+      chats = await db.getAllChats();
+    } else {
+      chats = await db.getChats(res.locals.userInfo._id);
+    }
+
     for (const chat of chats) {
-      chat.creator = await db.findUserById(
-        chat.creatorId,
+      // Handle chat customer
+      const customer: User = await db.findUserById(
+        chat.customerId,
         "_id, name, email, avatar",
       );
 
-      chat.creator.avatar = createImagesUrl("avatars", [
-        chat.creator.avatar,
-      ])[0];
+      customer.avatar = createImagesUrl("avatars", [customer.avatar])[0];
 
-      chat.guest = await db.findUserById(
-        chat.guestId,
-        "_id, name, email, avatar",
-      );
+      chat.customer = customer;
 
-      chat.guest.avatar = createImagesUrl("avatars", [chat.guest.avatar])[0];
+      // Handle chat lastMsg
+      if (chat.lastMsgId) {
+        chat.lastMsg = await db.findMessageById(chat.lastMsgId);
+      } else {
+        chat.lastMsg = null;
+      }
 
-      // Deleting undesired fields
-      delete chat.creatorId;
-      delete chat.guestId;
+      // Handle chat lastNotReadMsg
+      if (chat.lastNotReadMsgId) {
+        chat.lastNotReadMsg = await db.findMessageById(chat.lastNotReadMsgId);
+      } else {
+        chat.lastNotReadMsg = null;
+      }
     }
 
     return res.status(200).send({
@@ -66,7 +84,7 @@ export const getChat: ExpressHandler<GetChatRequest, GetChatResponse> = async (
   next,
 ) => {
   try {
-    const chat = await db.findChatById(+req.params.chatId);
+    const chat: Chat = await db.findChatById(+req.params.chatId);
 
     if (!chat) {
       return res.status(404).send({
@@ -76,8 +94,9 @@ export const getChat: ExpressHandler<GetChatRequest, GetChatResponse> = async (
     }
 
     if (
-      res.locals.userInfo._id !== chat.creatorId &&
-      res.locals.userInfo._id !== chat.guestId
+      res.locals.userInfo._id !== chat.customerId &&
+      res.locals.userInfo.role === ROLES_LIST.Admin &&
+      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
     ) {
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
@@ -85,24 +104,29 @@ export const getChat: ExpressHandler<GetChatRequest, GetChatResponse> = async (
       });
     }
 
-    // Handle chat users
-    chat.creator = await db.findUserById(
-      chat.creatorId,
+    // Handle chat customer
+    const customer: User = await db.findUserById(
+      chat.customerId,
       "_id, name, email, avatar",
     );
 
-    chat.creator.avatar = createImagesUrl("avatars", [chat.creator.avatar])[0];
+    customer.avatar = createImagesUrl("avatars", [customer.avatar])[0];
 
-    chat.guest = await db.findUserById(
-      chat.guestId,
-      "_id, name, email, avatar",
-    );
+    chat.customer = customer;
 
-    chat.guest.avatar = createImagesUrl("avatars", [chat.guest.avatar])[0];
+    // Handle chat lastMsg
+    if (chat.lastMsgId) {
+      chat.lastMsg = await db.findMessageById(chat.lastMsgId);
+    } else {
+      chat.lastMsg = null;
+    }
 
-    // Deleting undesired fields
-    delete chat.creatorId;
-    delete chat.guestId;
+    // Handle chat lastNotReadMsg
+    if (chat.lastNotReadMsgId) {
+      chat.lastNotReadMsg = await db.findMessageById(chat.lastNotReadMsgId);
+    } else {
+      chat.lastNotReadMsg = null;
+    }
 
     return res.status(200).send({
       statusText: httpStatusText.SUCCESS,
@@ -119,66 +143,84 @@ export const createChat: ExpressHandler<
   CreateChatResponse
 > = async (req, res, next) => {
   try {
-    // Handle guest constraints
-    if (!req.body.guestId) {
-      return res.status(400).send({
-        statusText: httpStatusText.FAIL,
-        message: "guestId is required.",
-      });
+    let customerId: number;
+
+    if (
+      res.locals.userInfo.role === ROLES_LIST.Admin ||
+      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
+    ) {
+      if (!req.body.customerId) {
+        return res.status(400).send({
+          statusText: httpStatusText.FAIL,
+          message: "customerId is required.",
+        });
+      } else if (+req.body.customerId === res.locals.userInfo._id) {
+        return res.status(409).send({
+          statusText: httpStatusText.FAIL,
+          message: "customerId must not be admin or super admin.",
+        });
+      } else {
+        const customer = await db.findUserById(
+          +req.body.customerId,
+          "_id, isVerified, role",
+        );
+
+        if (!customer) {
+          return res.status(404).send({
+            statusText: httpStatusText.FAIL,
+            message: "customer is not found.",
+          });
+        }
+
+        if (!customer.isVerified) {
+          return res.status(401).send({
+            statusText: httpStatusText.FAIL,
+            message: "customer is not verified.",
+          });
+        }
+
+        if (
+          customer.role === ROLES_LIST.Admin ||
+          customer.role === ROLES_LIST.SuperAdmin
+        ) {
+          return res.status(400).send({
+            statusText: httpStatusText.FAIL,
+            message: "customerId must not be admin or super admin.",
+          });
+        }
+
+        customerId = +req.body.customerId;
+      }
+    } else {
+      customerId = res.locals.userInfo._id;
     }
 
-    if (res.locals.userInfo._id === +req.body.guestId) {
-      return res.status(400).send({
-        statusText: httpStatusText.FAIL,
-        message: "Enter different guestId.",
-      });
-    }
-
-    const isGuestFound = await db.findUserById(
-      +req.body.guestId,
-      "_id, isVerified",
-    );
-
-    if (!isGuestFound) {
-      return res.status(400).send({
-        statusText: httpStatusText.FAIL,
-        message: "Guest is not found.",
-      });
-    }
-
-    if (!isGuestFound.isVerified) {
-      return res.status(400).send({
-        statusText: httpStatusText.FAIL,
-        message: "Guest is not verified.",
-      });
-    }
-
-    const chat = await db.findChatByUsers(
-      res.locals.userInfo._id,
-      +req.body.guestId,
-    );
+    const chat: Chat = await db.findChatByCustomerId(customerId);
 
     if (chat) {
-      // Handle chat users
-      chat.creator = await db.findUserById(
-        chat.creatorId,
+      // Handle chat customer
+      const customer: User = await db.findUserById(
+        chat.customerId,
         "_id, name, email, avatar",
       );
 
-      chat.creator.avatar = createImagesUrl("avatars", [
-        chat.creator.avatar,
-      ])[0];
+      customer.avatar = createImagesUrl("avatars", [customer.avatar])[0];
 
-      chat.guest = await db.findUserById(
-        chat.guestId,
-        "_id, name, email, avatar",
-      );
+      chat.customer = customer;
 
-      chat.guest.avatar = createImagesUrl("avatars", [chat.guest.avatar])[0];
+      // Handle chat lastMsg
+      if (chat.lastMsgId) {
+        chat.lastMsg = await db.findMessageById(chat.lastMsgId);
+      } else {
+        chat.lastMsg = null;
+      }
 
-      // Deleting un desired fields
-      delete chat.creatorId;
-      delete chat.guestId;
+      // Handle chat lastNotReadMsg
+      if (chat.lastNotReadMsgId) {
+        chat.lastNotReadMsg = await db.findMessageById(chat.lastNotReadMsgId);
+      } else {
+        chat.lastNotReadMsg = null;
+      }
 
       return res.status(200).send({
         statusText: httpStatusText.SUCCESS,
@@ -188,35 +230,33 @@ export const createChat: ExpressHandler<
     }
 
     // Create new chat
-    await db.createChat(res.locals.userInfo._id, +req.body.guestId);
+    const newChat: Chat = await db.createChat(customerId);
 
-    const newChat = await db.findChatByUsers(
-      res.locals.userInfo._id,
-      +req.body.guestId,
-    );
-
-    // Handle chat users
-    newChat.creator = await db.findUserById(
-      newChat.creatorId,
+    // Handle newChat customer
+    const customer: User = await db.findUserById(
+      newChat.customerId,
       "_id, name, email, avatar",
     );
 
-    newChat.creator.avatar = createImagesUrl("avatars", [
-      newChat.creator.avatar,
-    ])[0];
+    customer.avatar = createImagesUrl("avatars", [customer.avatar])[0];
 
-    newChat.guest = await db.findUserById(
-      newChat.guestId,
-      "_id, name, email, avatar",
-    );
+    newChat.customer = customer;
 
-    newChat.guest.avatar = createImagesUrl("avatars", [
-      newChat.guest.avatar,
-    ])[0];
+    // Handle newChat lastMsg
+    if (newChat.lastMsgId) {
+      newChat.lastMsg = await db.findMessageById(newChat.lastMsgId);
+    } else {
+      newChat.lastMsg = null;
+    }
 
-    // Deleting un desired fields
-    delete newChat.creatorId;
-    delete newChat.guestId;
+    // Handle newChat lastNotReadMsg
+    if (newChat.lastNotReadMsgId) {
+      newChat.lastNotReadMsg = await db.findMessageById(
+        newChat.lastNotReadMsgId,
+      );
+    } else {
+      newChat.lastNotReadMsg = null;
+    }
 
     return res.status(201).send({
       statusText: httpStatusText.SUCCESS,
@@ -228,13 +268,77 @@ export const createChat: ExpressHandler<
   }
 };
 
-// TODO: Delete chat messages notifications
+export const updateChat: ExpressHandler<
+  UpdateChatRequest,
+  UpdateChatResponse
+> = async (req, res, next) => {
+  try {
+    const chat: Chat = await db.findChatById(+req.params.chatId);
+
+    if (!chat) {
+      return res.status(404).send({
+        statusText: httpStatusText.FAIL,
+        message: "chat is not found.",
+      });
+    }
+
+    if (
+      res.locals.userInfo._id !== chat.customerId &&
+      res.locals.userInfo.role !== ROLES_LIST.Admin &&
+      res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
+    ) {
+      return res.status(401).send({
+        statusText: httpStatusText.FAIL,
+        message: "You don't have access to this resource.",
+      });
+    }
+
+    const updatedChat: Chat = await db.updateChat(+req.params.chatId, {
+      lastNotReadMsgId: req.body.lastNotReadMsgId,
+    });
+
+    // Handle updatedChat customer
+    const customer: User = await db.findUserById(
+      updatedChat.customerId,
+      "_id, name, email, avatar",
+    );
+
+    customer.avatar = createImagesUrl("avatars", [customer.avatar])[0];
+
+    updatedChat.customer = customer;
+
+    // Handle updatedChat lastMsg
+    if (updatedChat.lastMsgId) {
+      updatedChat.lastMsg = await db.findMessageById(updatedChat.lastMsgId);
+    } else {
+      updatedChat.lastMsg = null;
+    }
+
+    // Handle updatedChat lastNotReadMsg
+    if (updatedChat.lastNotReadMsgId) {
+      updatedChat.lastNotReadMsg = await db.findMessageById(
+        updatedChat.lastNotReadMsgId,
+      );
+    } else {
+      updatedChat.lastNotReadMsg = null;
+    }
+
+    res.status(200).send({
+      statusText: httpStatusText.SUCCESS,
+      message: "",
+      data: { chat: updatedChat },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deleteChat: ExpressHandler<
   DeleteChatRequest,
   DeleteChatResponse
 > = async (req, res, next) => {
   try {
-    const chat = await db.findChatById(+req.params.chatId);
+    const chat: Chat = await db.findChatById(+req.params.chatId);
 
     if (!chat) {
       return res.status(404).send({
@@ -244,14 +348,22 @@ export const deleteChat: ExpressHandler<
     }
 
     if (
-      res.locals.userInfo._id !== chat.creatorId &&
-      res.locals.userInfo._id !== chat.guestId
+      res.locals.userInfo._id !== chat.customerId &&
+      res.locals.userInfo.role !== ROLES_LIST.Admin &&
+      res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
     }
+
+    await db.deleteChatMessagesNotifications(chat._id);
+
+    await db.updateChat(chat._id, {
+      lastMsgId: null,
+      lastNotReadMsgId: null,
+    });
 
     await db.deleteChatMessages(chat._id);
 
@@ -263,13 +375,12 @@ export const deleteChat: ExpressHandler<
   }
 };
 
-// TODO: Add lastMsg and lastNotReadMsg to the chat
 export const getChatMessages: ExpressHandler<
   GetChatMessagesRequest,
   GetChatMessagesResponse
 > = async (req, res, next) => {
   try {
-    const chat = await db.findChatById(+req.params.chatId);
+    const chat: Chat = await db.findChatById(+req.params.chatId);
 
     if (!chat) {
       return res.status(404).send({
@@ -279,8 +390,9 @@ export const getChatMessages: ExpressHandler<
     }
 
     if (
-      res.locals.userInfo._id !== chat.creatorId &&
-      res.locals.userInfo._id !== chat.guestId
+      res.locals.userInfo._id !== chat.customerId &&
+      res.locals.userInfo.role !== ROLES_LIST.Admin &&
+      res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
@@ -288,9 +400,9 @@ export const getChatMessages: ExpressHandler<
       });
     }
 
-    const messages = await db.getChatMessages(+req.params.chatId);
+    const messages: Message[] = await db.getChatMessages(+req.params.chatId);
 
-    return res.status(300).send({
+    return res.status(200).send({
       statusText: httpStatusText.SUCCESS,
       message: "",
       data: { messages },
@@ -312,7 +424,10 @@ export const createMessage: ExpressHandler<
       });
     }
 
-    const chat = await db.findChatById(+req.params.chatId);
+    const chat: Chat = await db.findChatById(
+      +req.params.chatId,
+      "_id, customerId, lastNotReadMsgId",
+    );
 
     if (!chat) {
       return res.status(404).send({
@@ -322,8 +437,9 @@ export const createMessage: ExpressHandler<
     }
 
     if (
-      res.locals.userInfo._id !== chat.creatorId &&
-      res.locals.userInfo._id !== chat.guestId
+      res.locals.userInfo._id !== chat.customerId &&
+      res.locals.userInfo.role !== ROLES_LIST.Admin &&
+      res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
@@ -332,12 +448,26 @@ export const createMessage: ExpressHandler<
     }
 
     const newMessage = await db.createMessage(
-      chat._id,
+      +req.params.chatId,
       res.locals.userInfo._id,
       req.body.content,
     );
 
-    return res.status(401).send({
+    // Update chat lastNotReadMsgId
+    if (!chat.lastNotReadMsgId) {
+      await db.updateChat(+req.params.chatId, {
+        lastNotReadMsgId: newMessage._id,
+      });
+    }
+
+    // Update chat lastMsgId
+    await db.updateChat(+req.params.chatId, {
+      lastMsgId: newMessage._id,
+    });
+
+    // TODO: Create and send message notification
+
+    return res.status(201).send({
       statusText: httpStatusText.SUCCESS,
       message: "",
       data: { message: newMessage },
@@ -347,13 +477,12 @@ export const createMessage: ExpressHandler<
   }
 };
 
-// TODO: Delete msg notification
 export const deleteMessage: ExpressHandler<
   DeleteMessageRequest,
   DeleteMessageResponse
 > = async (req, res, next) => {
   try {
-    const message = await db.findMessageById(+req.params.messageId);
+    const message: Message = await db.findMessageById(+req.params.messageId);
 
     if (!message) {
       return res.status(404).send({
@@ -368,6 +497,35 @@ export const deleteMessage: ExpressHandler<
         message: "You don't have access to this resource.",
       });
     }
+
+    const chat: Chat = await db.findChatById(
+      message.chatId,
+      "_id, lastMsgId, lastNotReadMsgId",
+    );
+
+    // Update chat lastMsgId
+    if (message._id === chat.lastMsgId) {
+      const newLastMsg: Message = await db.findLastMessageBeforeTime(
+        message.createdAt,
+        "_id",
+      );
+
+      await db.updateChat(chat._id, { lastMsgId: newLastMsg?._id });
+    }
+
+    // Update chat lastNotReadMsgId
+    if (message._id === chat.lastNotReadMsgId) {
+      const newLastNotReadMsg: Message = await db.findLastMessageBeforeTime(
+        message.createdAt,
+        "_id",
+      );
+
+      await db.updateChat(chat._id, {
+        lastNotReadMsgId: newLastNotReadMsg?._id,
+      });
+    }
+
+    await db.deleteMessageNotification(+req.params.messageId);
 
     await db.deleteMessage(+req.params.messageId);
 

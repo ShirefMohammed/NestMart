@@ -1,2 +1,7 @@
 // TODO: Handle notifications type and socket in PersistLogin
-// TODO: Solve problem with persists as it is undefined instead boolean
+
+// TODO: Add lasMsg and lastNotReadMsg
+
+Auth future -> Ok
+
+Chat future

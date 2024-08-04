@@ -4,6 +4,7 @@ import {
   deleteUser,
   getUser,
   getUsers,
+  searchUsers,
   updateUser,
 } from "../controllers/usersController";
 import { verifyJWT } from "../middleware/verifyJWT";
@@ -19,6 +20,14 @@ router
     verifyJWT,
     verifyRole(ROLES_LIST.Admin, ROLES_LIST.SuperAdmin),
     getUsers,
+  );
+
+router
+  .route("/search")
+  .get(
+    verifyJWT,
+    verifyRole(ROLES_LIST.Admin, ROLES_LIST.SuperAdmin),
+    searchUsers,
   );
 
 const upload = uploadFileByMulter("avatars", "image");

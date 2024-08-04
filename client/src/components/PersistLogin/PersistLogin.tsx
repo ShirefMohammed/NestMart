@@ -57,13 +57,13 @@ const PersistLogin = ({ socket }) => {
 
   // currentUser Joins socket room
   useEffect(() => {
-    if (accessToken) {
+    if (currentUser) {
       socket.emit("setup", currentUser._id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, [currentUser]);
 
-  // Receive notification event
+  // TODO: Receive notification event
   useEffect(() => {
     socket.on("receiveNotification", (notification) => {
       dispatch(pushNotification(notification));

@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
 
+import { RegisterRequest } from "@shared/types/apiTypes";
+
 import axios from "../../api/axios";
 import { RgxList } from "../../utils/RgxList";
 import style from "./Register.module.css";
@@ -85,7 +87,7 @@ const Register = () => {
       setRegisterLoad(true);
 
       // Create newUser and send request to the server
-      const newUser = {
+      const newUser: RegisterRequest = {
         name: name,
         email: email,
         password: password,
@@ -103,7 +105,7 @@ const Register = () => {
       setConfirmPassword("");
 
       // Set success message
-      setSuccessMsg(res.data.message);
+      setSuccessMsg(res.data?.message);
       if (successRef.current) successRef.current.focus();
     } catch (err) {
       // If no server response

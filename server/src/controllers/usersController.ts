@@ -7,6 +7,8 @@ import {
   GetUserResponse,
   GetUsersRequest,
   GetUsersResponse,
+  SearchUsersRequest,
+  SearchUsersResponse,
   UpdateUserRequest,
   UpdateUserResponse,
 } from "@shared/types/apiTypes";
@@ -31,6 +33,46 @@ export const getUsers: ExpressHandler<
     const skip = (page - 1) * limit;
 
     const users = await db.getUsers(
+      -1,
+      limit,
+      skip,
+      "_id, name, email, avatar, createdAt, updatedAt, isVerified, role, phone, country, city",
+    );
+
+    users.forEach((user) => {
+      user.avatar = createImagesUrl("avatars", [user.avatar])[0];
+    });
+
+    res.status(200).send({
+      statusText: httpStatusText.SUCCESS,
+      message: "",
+      data: { users },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const searchUsers: ExpressHandler<
+  SearchUsersRequest,
+  SearchUsersResponse
+> = async (req, res, next) => {
+  try {
+    const searchKey = req.query?.searchKey;
+    const limit = req.query?.limit ? Number(req.query.limit) : 10;
+    const page = req.query?.page ? Number(req.query.page) : 1;
+    const skip = (page - 1) * limit;
+
+    if (!searchKey) {
+      return res.status(200).send({
+        statusText: httpStatusText.SUCCESS,
+        message: "",
+        data: { users: [] },
+      });
+    }
+
+    const users = await db.searchUsers(
+      searchKey,
       -1,
       limit,
       skip,

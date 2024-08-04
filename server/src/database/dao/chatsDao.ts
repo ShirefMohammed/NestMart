@@ -1,21 +1,33 @@
 import { Chat } from "@shared/types/entitiesTypes";
 
 export interface ChatsDao {
-  findChatById(chatId: number): Promise<any>;
+  findChatById(chatId: number, selectedFields?: string): Promise<any>;
 
-  findChatByUsers(creatorId: number, guestId: number): Promise<any>;
+  findChatByCustomerId(
+    customerId: number,
+    selectedFields?: string,
+  ): Promise<any>;
 
-  createChat(creatorId: number, guestId: number): Promise<void>;
+  createChat(customerId: number): Promise<any>;
 
-  updateChat(chatId: number, _chat: Chat): Promise<void>;
+  updateChat(chatId: number, chat: Partial<Chat>): Promise<any>;
 
   deleteChat(chatId: number): Promise<void>;
 
-  getChats(userId: number): Promise<any>;
+  getChats(customerId: number): Promise<any>;
+
+  getAllChats(): Promise<any>;
 
   deleteChatMessages(chatId: number): Promise<void>;
 
-  findMessageById(messageId: number): Promise<any>;
+  deleteChatMessagesNotifications(chatId: number): Promise<void>;
+
+  findMessageById(messageId: number, selectedFields?: string): Promise<any>;
+
+  findLastMessageBeforeTime(
+    createdAt: number,
+    selectedFields?: string,
+  ): Promise<any>;
 
   createMessage(
     chatId: number,
@@ -24,6 +36,8 @@ export interface ChatsDao {
   ): Promise<any>;
 
   deleteMessage(messageId: number): Promise<void>;
+
+  deleteMessageNotification(messageId: number): Promise<void>;
 
   getChatMessages(chatId: number): Promise<any>;
 }

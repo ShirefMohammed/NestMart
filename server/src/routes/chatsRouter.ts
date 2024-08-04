@@ -8,6 +8,7 @@ import {
   getChat,
   getChatMessages,
   getChats,
+  updateChat,
 } from "../controllers/chatsController";
 import { verifyJWT } from "../middleware/verifyJWT";
 
@@ -15,7 +16,11 @@ const router = express.Router();
 
 router.route("/").get(verifyJWT, getChats).post(verifyJWT, createChat);
 
-router.route("/:chatId").get(verifyJWT, getChat).delete(verifyJWT, deleteChat);
+router
+  .route("/:chatId")
+  .get(verifyJWT, getChat)
+  .patch(verifyJWT, updateChat)
+  .delete(verifyJWT, deleteChat);
 
 router
   .route("/:chatId/messages")

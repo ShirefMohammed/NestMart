@@ -23,9 +23,13 @@ You can update and delete your account also you can upload an photo for you.
 
 There will be categories section and page for products for every category.
 
+Admins can create, update and delete a categories.
+
 ## Products
 
 Searching for products and product page.
+
+Admins can create, update and delete a products.
 
 ## Cart
 
@@ -33,7 +37,7 @@ You can add and delete from your cart.
 
 ## Orders
 
-You can make an orders from your cart items
+You can make an orders from your cart items.
 
 ## Chat with admins
 
