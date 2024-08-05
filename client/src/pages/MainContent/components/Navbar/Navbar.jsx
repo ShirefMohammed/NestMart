@@ -56,7 +56,7 @@ const Navbar = () => {
             />
           </Link>
         ) : (
-          <Link to="/authentication" title="login">
+          <Link to="/auth" title="login">
             <FontAwesomeIcon icon={faSignInAlt} />
           </Link>
         )}

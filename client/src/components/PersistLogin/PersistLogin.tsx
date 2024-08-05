@@ -36,10 +36,9 @@ const PersistLogin = ({ socket }) => {
     };
 
     verifyRefreshToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch current currentUser notifications
+  // Fetch currentUser notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -52,15 +51,15 @@ const PersistLogin = ({ socket }) => {
     };
 
     fetchNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  // currentUser Joins socket room
+  /* Sockets */
+
+  // Current app socket Joins to userId room
   useEffect(() => {
-    if (currentUser) {
-      socket.emit("setup", currentUser._id);
+    if (currentUser?._id) {
+      socket.emit("setup", currentUser?._id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   // TODO: Receive notification event
@@ -72,7 +71,6 @@ const PersistLogin = ({ socket }) => {
     return () => {
       socket.off("receiveNotification");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

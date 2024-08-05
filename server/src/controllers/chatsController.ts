@@ -1,3 +1,4 @@
+// TODO: Remember messages notifications
 import {
   CreateChatRequest,
   CreateChatResponse,
@@ -24,23 +25,12 @@ import { createImagesUrl } from "../utils/createImagesUrl";
 import { httpStatusText } from "../utils/httpStatusText";
 import { ROLES_LIST } from "../utils/rolesList";
 
-// TODO: Remember notifications
-
 export const getChats: ExpressHandler<
   GetChatsRequest,
   GetChatsResponse
 > = async (_req, res, next) => {
   try {
-    let chats: Chat[];
-
-    if (
-      res.locals.userInfo.role === ROLES_LIST.Admin ||
-      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
-    ) {
-      chats = await db.getAllChats();
-    } else {
-      chats = await db.getChats(res.locals.userInfo._id);
-    }
+    let chats: Chat[] = await db.getAllChats();
 
     for (const chat of chats) {
       // Handle chat customer
@@ -402,6 +392,18 @@ export const getChatMessages: ExpressHandler<
 
     const messages: Message[] = await db.getChatMessages(+req.params.chatId);
 
+    // Set forEach msg sender(_id, avatar)
+    for (const msg of messages) {
+      const msgSender: User = await db.findUserById(
+        msg.senderId,
+        "_id, name, avatar",
+      );
+
+      msgSender.avatar = createImagesUrl("avatars", [msgSender.avatar])[0];
+
+      msg.sender = msgSender;
+    }
+
     return res.status(200).send({
       statusText: httpStatusText.SUCCESS,
       message: "",
@@ -412,6 +414,7 @@ export const getChatMessages: ExpressHandler<
   }
 };
 
+// TODO: Create and send message notification
 export const createMessage: ExpressHandler<
   CreateMessageRequest,
   CreateMessageResponse
@@ -424,10 +427,7 @@ export const createMessage: ExpressHandler<
       });
     }
 
-    const chat: Chat = await db.findChatById(
-      +req.params.chatId,
-      "_id, customerId, lastNotReadMsgId",
-    );
+    const chat: Chat = await db.findChatById(+req.params.chatId);
 
     if (!chat) {
       return res.status(404).send({
@@ -453,8 +453,20 @@ export const createMessage: ExpressHandler<
       req.body.content,
     );
 
+    // Set to newMessage sender(_id, name, avatar)
+    const msgSender: User = await db.findUserById(
+      newMessage.senderId,
+      "_id, name, avatar",
+    );
+    msgSender.avatar = createImagesUrl("avatars", [msgSender.avatar])[0];
+    newMessage.sender = msgSender;
+
     // Update chat lastNotReadMsgId
-    if (!chat.lastNotReadMsgId) {
+    if (
+      !chat.lastNotReadMsgId &&
+      (res.locals.userInfo.role === ROLES_LIST.Admin ||
+        res.locals.userInfo.role === ROLES_LIST.SuperAdmin)
+    ) {
       await db.updateChat(+req.params.chatId, {
         lastNotReadMsgId: newMessage._id,
       });
@@ -464,8 +476,6 @@ export const createMessage: ExpressHandler<
     await db.updateChat(+req.params.chatId, {
       lastMsgId: newMessage._id,
     });
-
-    // TODO: Create and send message notification
 
     return res.status(201).send({
       statusText: httpStatusText.SUCCESS,
@@ -498,10 +508,7 @@ export const deleteMessage: ExpressHandler<
       });
     }
 
-    const chat: Chat = await db.findChatById(
-      message.chatId,
-      "_id, lastMsgId, lastNotReadMsgId",
-    );
+    const chat: Chat = await db.findChatById(message.chatId);
 
     // Update chat lastMsgId
     if (message._id === chat.lastMsgId) {

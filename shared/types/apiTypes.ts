@@ -196,7 +196,7 @@ export interface CreateChatResponse {
   chat: Chat;
 }
 
-export type UpdateChatRequest = Pick<Chat, "lastNotReadMsgId">;
+export type UpdateChatRequest = Partial<Pick<Chat, "lastNotReadMsgId">>;
 export interface UpdateChatResponse {
   chat: Chat;
 }

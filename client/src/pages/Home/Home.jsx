@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
+
+import axios from "../../api/axios";
 // import { VideoCard } from "../../components";
 import { useHandleErrors } from "../../hooks";
-import axios from "../../api/axios";
 import style from "./Home.module.css";
 
 const Home = () => {
@@ -22,17 +23,12 @@ const Home = () => {
         setFetchVideosLoad(true);
 
         const res = await axios.get(
-          `/videos/Explore?page=${page}&limit=${limit}&exceptedVideos=${exceptedVideos.join(
-            ","
-          )}`
+          `/videos/Explore?page=${page}&limit=${limit}&exceptedVideos=${exceptedVideos.join(",")}`,
         );
 
         setVideos((prev) => [...prev, ...res.data.data]);
 
-        setExceptedVideos((prev) => [
-          ...prev,
-          ...res.data.data.map((video) => video?._id),
-        ]);
+        setExceptedVideos((prev) => [...prev, ...res.data.data.map((video) => video?._id)]);
       } catch (err) {
         handleErrors(err);
       } finally {
@@ -41,7 +37,6 @@ const Home = () => {
     };
 
     fetchVideos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   return (
@@ -52,9 +47,7 @@ const Home = () => {
         </div>
       ) : videos.length > 0 ? (
         <div className={style.videos_container}>
-          {videos.map((video) => (
-            "<VideoCard key={video._id} video={video} />"
-          ))}
+          {videos.map((video) => "<VideoCard key={video._id} video={video} />")}
         </div>
       ) : (
         ""

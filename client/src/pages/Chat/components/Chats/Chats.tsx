@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
 
+import { GetChatsResponse } from "@shared/types/apiTypes";
 import { Chat } from "@shared/types/entitiesTypes";
 
 import { useHandleErrors } from "../../../../hooks";
@@ -17,20 +18,25 @@ import style from "./Chats.module.css";
 
 const Chats = ({ chats, setChats, socket }) => {
   const currentUser = useSelector((state: StoreState) => state.currentUser);
-
-  const [fetchChatsLoad, setFetchChatsLoad] = useState(false);
-  const [openCreateChat, setOpenCreateChat] = useState(false);
+  const [fetchChatsLoad, setFetchChatsLoad] = useState<boolean>(false);
+  const [openCreateChat, setOpenCreateChat] = useState<boolean>(false);
 
   const handleErrors = useHandleErrors();
   const navigate = useNavigate();
 
-  // Fetch user chats
+  // Fetch chats for admin or superAdmin
   useEffect(() => {
     const fetchChats = async () => {
       try {
         setFetchChatsLoad(true);
-        setChats(await chatsAPI.fetchUserChats());
+
+        const res = await chatsAPI.fetchUserChats();
+
+        const data: GetChatsResponse = res.data.data;
+
+        setChats(data.chats);
       } catch (err) {
+        console.log(err);
         handleErrors(err);
       } finally {
         setFetchChatsLoad(false);
@@ -38,7 +44,6 @@ const Chats = ({ chats, setChats, socket }) => {
     };
 
     fetchChats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -49,9 +54,9 @@ const Chats = ({ chats, setChats, socket }) => {
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
 
-        <Link to={`/users/${currentUser?._id}`} className={style.user_info}>
-          <img src={currentUser?.avatar} alt="" />
-          <span>{currentUser?.name}</span>
+        <Link to={`/users/${currentUser._id}`} className={style.user_info}>
+          <img src={currentUser.avatar} alt="" />
+          <span>{currentUser.name}</span>
         </Link>
 
         <button type="button" onClick={() => setOpenCreateChat(true)} title="create">

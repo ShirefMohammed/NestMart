@@ -974,13 +974,13 @@ export class sqliteDB implements Datastore {
         );
       }
 
-      const result = await this.db.run(
+      await this.db.run(
         "UPDATE Chats SET updatedAt = ? WHERE _id = ?",
         Date.now(),
         chatId,
       );
 
-      return await this.findChatById(result.lastID!);
+      return await this.findChatById(chatId);
     } catch (err) {
       console.error("Error in updateChat:", err);
       throw err;
@@ -1085,7 +1085,11 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async createMessage(chatId: number, senderId: number, content: string) {
+  async createMessage(
+    chatId: number,
+    senderId: number,
+    content: string,
+  ): Promise<any> {
     try {
       const result = await this.db.run(
         "INSERT INTO Messages (chatId, senderId, content, createdAt) VALUES (?,?,?,?)",
@@ -1095,10 +1099,7 @@ export class sqliteDB implements Datastore {
         Date.now(),
       );
 
-      return await this.db.get(
-        "SELECT * FROM Messages WHERE _id = ?",
-        result.lastID,
-      );
+      return this.db.get("SELECT * FROM Messages WHERE _id = ?", result.lastID);
     } catch (err) {
       console.error("Error in createMessage:", err);
       throw err;

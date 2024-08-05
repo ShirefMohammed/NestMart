@@ -6,6 +6,13 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { BeatLoader, MoonLoader } from "react-spinners";
 
+import {
+  CreateChatRequest,
+  CreateChatResponse,
+  GetChatMessagesResponse,
+  GetChatResponse,
+  UpdateChatRequest,
+} from "@shared/types/apiTypes";
 import { Chat, Message } from "@shared/types/entitiesTypes";
 
 import { chatsAPI } from "../../../../api/chatsAPI";
@@ -36,12 +43,20 @@ const SelectedChat = ({ chats, setChats, socket }) => {
   const handleErrors = useHandleErrors();
   const navigate = useNavigate();
 
-  // Create Chat if currentUser is not admin or superAdmin
+  // If isCurrentUserCustomer create chat and navigate to it
   useEffect(() => {
     const createChat = async (customerId: number) => {
       try {
         setCreateChatLoad(true);
-        const newChat = await chatsAPI.createChat(customerId);
+
+        const reqBody: CreateChatRequest = { customerId: customerId };
+
+        const res = await chatsAPI.createChat(reqBody);
+
+        const data: CreateChatResponse = res.data.data;
+
+        const newChat: Chat = data.chat;
+
         navigate(`/chat/${newChat._id}`);
       } catch (err) {
         handleErrors(err);
@@ -50,19 +65,22 @@ const SelectedChat = ({ chats, setChats, socket }) => {
       }
     };
 
-    if (isCurrentUserCustomer) {
-      createChat(currentUser._id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isCurrentUserCustomer) createChat(currentUser._id);
   }, []);
 
-  // Fetch selected chat
+  // Fetch selectedChat with chatId params
   useEffect(() => {
     const fetchSelectedChat = async () => {
       try {
         if (!chatId) return setSelectedChat(null);
+
         setFetchSelectedChatLoad(true);
-        setSelectedChat(await chatsAPI.fetchChat(+chatId));
+
+        const res = await chatsAPI.fetchChat(+chatId);
+
+        const data: GetChatResponse = res.data.data;
+
+        setSelectedChat(data.chat);
       } catch (err) {
         handleErrors(err);
       } finally {
@@ -71,16 +89,21 @@ const SelectedChat = ({ chats, setChats, socket }) => {
     };
 
     fetchSelectedChat();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
-  // Fetch chat messages
+  // Fetch selectedChat messages
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         if (!chatId) return;
+
         setFetchMessagesLoad(true);
-        setMessages(await chatsAPI.fetchChatMessages(+chatId));
+
+        const res = await chatsAPI.fetchChatMessages(+chatId);
+
+        const data: GetChatMessagesResponse = res.data.data;
+
+        setMessages(data.messages);
       } catch (err) {
         handleErrors(err);
       } finally {
@@ -89,61 +112,84 @@ const SelectedChat = ({ chats, setChats, socket }) => {
     };
 
     fetchMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
-  // scroll to the lastNotReadMsg
+  // If isCurrentUserCustomer scroll to the lastNotReadMsg else scroll to lastMsg
   useEffect(() => {
-    setTimeout(() => {
-      document
-        .getElementById(`message-${selectedChat?.lastNotReadMsgId}`)
-        ?.scrollIntoView({ behavior: "smooth" });
-    }, 0);
+    if (isCurrentUserCustomer && selectedChat?.lastNotReadMsgId) {
+      setTimeout(() => {
+        document
+          .getElementById(`message-${selectedChat?.lastNotReadMsgId}`)
+          ?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+    } else {
+      setTimeout(() => {
+        document
+          .getElementById(`message-${selectedChat?.lastMsgId}`)
+          ?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+    }
   }, [selectedChat]);
 
-  // Update selectedChat lastNotReadMsg to null
+  // If isCurrentUserCustomer update selectedChat.lastNotReadMsg to null
   useEffect(() => {
     const updateChatLastNotReadMsg = async () => {
-      if (selectedChat?._id && selectedChat?.lastNotReadMsgId) {
-        await chatsAPI.updateChatLastNotReadMsg(selectedChat?._id, null);
+      if (selectedChat?._id && isCurrentUserCustomer && selectedChat.lastNotReadMsgId) {
+        const reqBody: UpdateChatRequest = { lastNotReadMsgId: null };
+        await chatsAPI.updateChatLastNotReadMsg(selectedChat?._id, reqBody);
       }
     };
 
     updateChatLastNotReadMsg();
-  }, [selectedChat, messages]);
+  }, [selectedChat]);
 
-  // Join socket chat room
+  /* Sockets Events */
+
+  // Current app socket Joins to chatId room
   useEffect(() => {
     if (chatId) {
       socket.emit("joinChat", +chatId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 
   // Receive message socket event
   useEffect(() => {
-    socket.on("receiveMessage", (receivedMessage: any) => {
-      if (chatId == receivedMessage.chatId) {
+    socket.on("receiveMessage", (receivedMessage: Message) => {
+      if (chatId && +chatId === receivedMessage.chatId) {
         setMessages((prevMessages: Message[]) => [...prevMessages, receivedMessage]);
       }
     });
 
     return () => {
-      // Clean up the socket event listener when the component unmounts
       socket.off("receiveMessage");
+    };
+  }, [chatId, socket]);
+
+  // Delete message socket event
+  useEffect(() => {
+    socket.on("deleteMessage", (deletedMessage: Message) => {
+      if (chatId && +chatId === deletedMessage.chatId) {
+        setMessages((prevMessages) =>
+          prevMessages.filter((msg: Message) => msg._id !== deletedMessage._id),
+        );
+      }
+    });
+
+    return () => {
+      socket.off("deleteMessage");
     };
   }, [chatId, socket]);
 
   // Typing socket event
   useEffect(() => {
-    socket.on("typing", (targetChatId: any) => {
-      if (chatId == targetChatId) {
+    socket.on("typing", (targetChatId: number) => {
+      if (chatId && +chatId === targetChatId) {
         setTyping(true);
       }
     });
 
-    socket.on("stopTyping", (targetChatId: any) => {
-      if (chatId == targetChatId) {
+    socket.on("stopTyping", (targetChatId: number) => {
+      if (chatId && +chatId === targetChatId) {
         setTimeout(() => setTyping(false), 2000);
       }
     });
@@ -174,9 +220,9 @@ const SelectedChat = ({ chats, setChats, socket }) => {
             </button>
 
             {!isCurrentUserCustomer ? (
-              <Link to={`/users/${selectedChat?.customer?._id}`} className={style.user_info}>
-                <img src={selectedChat?.customer?.avatar} alt="" />
-                <span>{selectedChat?.customer?.name}</span>
+              <Link to={`/users/${selectedChat.customer?._id}`} className={style.user_info}>
+                <img src={selectedChat.customer?.avatar} alt="" />
+                <span>{selectedChat.customer?.name}</span>
                 <div className={style.typing}>
                   {typing ? <BeatLoader color="#888" size={8} /> : ""}
                 </div>
@@ -203,6 +249,8 @@ const SelectedChat = ({ chats, setChats, socket }) => {
                   message={message}
                   index={index}
                   messages={messages}
+                  setMessages={setMessages}
+                  socket={socket}
                 />
               ))
             )}

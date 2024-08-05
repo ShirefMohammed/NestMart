@@ -202,8 +202,8 @@ const Sidebar = () => {
               </Link>
             ) : (
               <Link
-                to="/authentication"
-                className={pathname === "/authentication" ? style.active : ""}
+                to="/auth"
+                className={pathname === "/auth" ? style.active : ""}
                 title="login"
               >
                 <FontAwesomeIcon icon={faSignInAlt} />

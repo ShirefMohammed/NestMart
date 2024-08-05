@@ -23,3 +23,8 @@ https://dev.to/macmacky/get-better-with-typescript-using-express-3ik6
 
 E-commerce ERD example DB:
 https://vertabelo.com/blog/er-diagram-for-online-shop/
+
+Figma UI
+https://www.figma.com/design/3XSTP21kHXiGFK3z1MziH5/97%2B-Ecommerce-Landing-Page-With-Dashboard-(Community)?node-id=6511-10940&t=tQZ9hXtPlaDYeFt9-0
+
+https://www.figma.com/proto/3XSTP21kHXiGFK3z1MziH5/97%2B-Ecommerce-Landing-Page-With-Dashboard-(Community)?node-id=4328-1010&t=05VGgvLqiUUJzAhT-0&scaling=scale-down-width&content-scaling=fixed&page-id=0%3A1

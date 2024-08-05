@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
+import { CreateMessageRequest, CreateMessageResponse } from "@shared/types/apiTypes";
+
 import { chatsAPI } from "../../../../api/chatsAPI";
 import { useHandleErrors, useNotify } from "../../../../hooks";
 import style from "./SendMessageController.module.css";
 
 const SendMessageController = ({ messages, setMessages, socket }) => {
   const { chatId } = useParams();
-
   const [newMessageContent, setNewMessageContent] = useState<string>("");
   const [sendMessageLoad, setSendMessageLoad] = useState<boolean>(false);
 
@@ -18,7 +19,7 @@ const SendMessageController = ({ messages, setMessages, socket }) => {
   const notify = useNotify();
 
   // Send message
-  const sendMessage = async (e) => {
+  const sendMessage = async (e: any) => {
     e.preventDefault();
 
     try {
@@ -26,11 +27,15 @@ const SendMessageController = ({ messages, setMessages, socket }) => {
 
       if (!newMessageContent) return notify("info", "Enter message content");
 
-      const newMessage = await chatsAPI.createMessage(+chatId!, newMessageContent);
+      const reqBody: CreateMessageRequest = { content: newMessageContent };
 
-      setMessages([...messages, newMessage]);
+      const res = await chatsAPI.createMessage(+chatId!, reqBody);
 
-      socket.emit("sendMessage", newMessage);
+      const data: CreateMessageResponse = res.data.data;
+
+      setMessages([...messages, data.message]);
+
+      socket.emit("sendMessage", data.message);
 
       setNewMessageContent("");
     } catch (err) {

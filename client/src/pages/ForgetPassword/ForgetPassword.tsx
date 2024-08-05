@@ -4,6 +4,7 @@ import { MoonLoader } from "react-spinners";
 
 import { ForgetPasswordRequest } from "@shared/types/apiTypes";
 
+import { authAPI } from "../../api/authAPI";
 import axios from "../../api/axios";
 import style from "./ForgetPassword.module.css";
 
@@ -42,10 +43,7 @@ const ForgetPassword = () => {
         email: email,
       };
 
-      const res = await axios.post(`/auth/forgetPassword`, reqBody, {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
+      const res = await authAPI.forgetPassword(reqBody);
 
       setSuccessMsg(res.data?.message);
       if (successRef.current) successRef.current.focus();

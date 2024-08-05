@@ -5,13 +5,13 @@ import { MoonLoader } from "react-spinners";
 
 import { LoginRequest, LoginResponse } from "@shared/types/apiTypes";
 
+import { authAPI } from "../../api/authAPI";
 import axios from "../../api/axios";
 import { useNotify } from "../../hooks";
 import { setAccessToken } from "../../store/slices/accessTokenSlice";
 import { setUser } from "../../store/slices/userSlice";
 import style from "./Login.module.css";
 
-// TODO: Solve problem with persists as it is undefined instead boolean
 const Login = () => {
   const currentUser = useSelector((state: any) => state.currentUser);
 
@@ -64,10 +64,7 @@ const Login = () => {
         password: password,
       };
 
-      const res = await axios.post(`/auth/login`, reqBody, {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
+      const res = await authAPI.login(reqBody);
 
       const resData: LoginResponse = res.data?.data;
 

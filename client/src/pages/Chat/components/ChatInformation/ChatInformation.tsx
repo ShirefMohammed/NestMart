@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
+import { Chat } from "@shared/types/entitiesTypes";
+
 import { chatsAPI } from "../../../../api/chatsAPI";
 import { useHandleErrors, useNotify } from "../../../../hooks";
 import style from "./ChatInformation.module.css";
@@ -28,7 +30,7 @@ const ChatInformation = ({
 
       await chatsAPI.deleteChat(selectedChat._id);
 
-      setChats(chats.filter((chat: any) => chat._id !== selectedChat._id));
+      setChats(chats.filter((chat: Chat) => chat._id !== selectedChat._id));
 
       notify("success", "Chat is deleted");
 

@@ -11,10 +11,15 @@ import {
   updateChat,
 } from "../controllers/chatsController";
 import { verifyJWT } from "../middleware/verifyJWT";
+import { verifyRole } from "../middleware/verifyRole";
+import { ROLES_LIST } from "../utils/rolesList";
 
 const router = express.Router();
 
-router.route("/").get(verifyJWT, getChats).post(verifyJWT, createChat);
+router
+  .route("/")
+  .get(verifyJWT, verifyRole(ROLES_LIST.Admin, ROLES_LIST.SuperAdmin), getChats)
+  .post(verifyJWT, createChat);
 
 router
   .route("/:chatId")

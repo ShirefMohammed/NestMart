@@ -1,57 +1,38 @@
-import {
-  CreateChatResponse,
-  CreateMessageResponse,
-  GetChatMessagesResponse,
-  GetChatResponse,
-  GetChatsResponse,
-  UpdateChatRequest,
-} from "@shared/types/apiTypes";
-import { Chat } from "@shared/types/entitiesTypes";
+import { CreateChatRequest, CreateMessageRequest, UpdateChatRequest } from "@shared/types/apiTypes";
 
 import { axiosPrivate } from "./axios";
 
 class ChatsAPI {
-  async createChat(customerId?: number): Promise<Chat> {
-    const res = await axiosPrivate.post(`/chats`, {
-      customerId: customerId,
-    });
-    const data: CreateChatResponse = res.data.data;
-    return data.chat;
+  async createChat(reqBody: CreateChatRequest): Promise<any> {
+    return await axiosPrivate.post(`/chats`, reqBody);
   }
 
-  async updateChatLastNotReadMsg(chatId: number, lastNotReadMsgId: number | null): Promise<void> {
-    const reqData: UpdateChatRequest = { lastNotReadMsgId };
-    await axiosPrivate.patch(`/chats/${chatId}`, reqData);
+  async updateChatLastNotReadMsg(chatId: number, reqBody: UpdateChatRequest): Promise<void> {
+    await axiosPrivate.patch(`/chats/${chatId}`, reqBody);
   }
 
   async deleteChat(chatId: number): Promise<void> {
     await axiosPrivate.delete(`/chats/${chatId}`);
   }
 
-  async fetchUserChats(): Promise<Chat[]> {
-    const res = await axiosPrivate.get(`/chats`);
-    const data: GetChatsResponse = res.data.data;
-    return data.chats;
+  async fetchUserChats(): Promise<any> {
+    return await axiosPrivate.get(`/chats`);
   }
 
-  async fetchChat(chatId: number): Promise<Chat> {
-    const res = await axiosPrivate.get(`/chats/${chatId}`);
-    const data: GetChatResponse = res.data.data;
-    return data.chat;
+  async fetchChat(chatId: number): Promise<any> {
+    return await axiosPrivate.get(`/chats/${chatId}`);
   }
 
-  async fetchChatMessages(chatId: number) {
-    const res = await axiosPrivate.get(`/chats/${chatId}/messages`);
-    const data: GetChatMessagesResponse = res.data.data;
-    return data.messages;
+  async fetchChatMessages(chatId: number): Promise<any> {
+    return await axiosPrivate.get(`/chats/${chatId}/messages`);
   }
 
-  async createMessage(chatId: number, newMessageContent: string) {
-    const res = await axiosPrivate.post(`chats/${chatId}/messages`, {
-      content: newMessageContent,
-    });
-    const data: CreateMessageResponse = res.data.data;
-    return data.message;
+  async createMessage(chatId: number, reqBody: CreateMessageRequest): Promise<any> {
+    return await axiosPrivate.post(`chats/${chatId}/messages`, reqBody);
+  }
+
+  async deleteMessage(chatId: number, messageId: number): Promise<void> {
+    await axiosPrivate.delete(`chats/${chatId}/messages/${messageId}`);
   }
 }
 

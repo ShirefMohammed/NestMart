@@ -6,6 +6,7 @@ import { MoonLoader } from "react-spinners";
 
 import { RegisterRequest } from "@shared/types/apiTypes";
 
+import { authAPI } from "../../api/authAPI";
 import axios from "../../api/axios";
 import { RgxList } from "../../utils/RgxList";
 import style from "./Register.module.css";
@@ -87,16 +88,13 @@ const Register = () => {
       setRegisterLoad(true);
 
       // Create newUser and send request to the server
-      const newUser: RegisterRequest = {
+      const reqBody: RegisterRequest = {
         name: name,
         email: email,
         password: password,
       };
 
-      const res = await axios.post(`/auth/register`, newUser, {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
+      const res = await authAPI.register(reqBody);
 
       // Empty states
       setName("");

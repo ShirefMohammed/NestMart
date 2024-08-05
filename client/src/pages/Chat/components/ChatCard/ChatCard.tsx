@@ -1,4 +1,6 @@
+import { StoreState } from "client/src/store/store";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 
 import { Chat } from "@shared/types/entitiesTypes";
@@ -7,12 +9,14 @@ import style from "./ChatCard.module.css";
 
 const ChatCard = ({ chat, socket }) => {
   const { chatId } = useParams();
+  const currentUser = useSelector((state: StoreState) => state.currentUser);
   const [currentChat] = useState<Chat>(chat);
-  const [connectionStatus, setConnectionStatus] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<boolean>(false);
+
+  /* Sockets */
 
   useEffect(() => {
     socket.emit("checkUserConnected", currentChat.customerId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -25,20 +29,34 @@ const ChatCard = ({ chat, socket }) => {
     return () => {
       socket.off("checkUserConnected");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <Link
-      to={`/chat/${chat._id}`}
-      className={`${style.chat_card} ${chatId === chat._id ? style.active : ""}`}
+      to={`/chat/${currentChat._id}`}
+      className={`${style.chat_card} ${+chatId! === currentChat._id ? style.active : ""}`}
     >
       <figure className={style.image_container}>
         <img src={currentChat.customer?.avatar} alt="" />
         {connectionStatus ? <div className={style.connection_status}></div> : ""}
       </figure>
 
-      <span className={style.guest_name}>{currentChat.customer?.name}</span>
+      <div>
+        <span className={style.name}>{currentChat.customer?.name}</span>
+
+        <p className={style.latest_message}>
+          {currentChat.lastMsg ? (
+            <>
+              {currentChat.lastMsg?.senderId === currentUser._id ? "You: " : ""}
+              {currentChat.lastMsg?.content.length > 25
+                ? currentChat.lastMsg?.content.substring(0, 25) + "..."
+                : currentChat.lastMsg?.content}
+            </>
+          ) : (
+            ""
+          )}
+        </p>
+      </div>
     </Link>
   );
 };

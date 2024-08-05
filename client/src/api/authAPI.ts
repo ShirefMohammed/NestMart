@@ -1,17 +1,27 @@
-import { LoginRequest, LoginResponse } from "@shared/types/apiTypes";
+import { ForgetPasswordRequest, LoginRequest, RegisterRequest } from "@shared/types/apiTypes";
 
 import axios from "./axios";
 
 class AuthAPI {
-  async login(reqBody: LoginRequest): Promise<{ resData: LoginResponse; message: string }> {
-    const res = await axios.post(`/auth/login`, reqBody, {
+  async login(reqBody: LoginRequest): Promise<any> {
+    return await axios.post(`/auth/login`, reqBody, {
       headers: { "Content-Type": "application/json" },
       withCredentials: true,
     });
+  }
 
-    const resData: LoginResponse = res.data?.data;
+  async register(reqBody: RegisterRequest): Promise<any> {
+    return await axios.post(`/auth/register`, reqBody, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
+  }
 
-    return { resData, message: res.data?.message };
+  async forgetPassword(reqBody: ForgetPasswordRequest): Promise<any> {
+    return await axios.post(`/auth/forgetPassword`, reqBody, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    });
   }
 }
 

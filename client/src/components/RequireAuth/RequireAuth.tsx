@@ -13,7 +13,7 @@ const RequireAuth = ({ allowedRoles }) => {
   ) : accessToken ? (
     <Navigate to="/unauthorized" state={{ from: location }} replace />
   ) : (
-    <Navigate to="/authentication" state={{ from: location }} replace />
+    <Navigate to="/auth" state={{ from: location }} replace />
   );
 };
 

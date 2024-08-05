@@ -2,3 +2,4 @@
 // TODO: Delete all user related resources
 // TODO: Add lastMsg and lastNotReadMsg to the chat
 // TODO: Delete order notification
+// TODO: Remember messages notifications

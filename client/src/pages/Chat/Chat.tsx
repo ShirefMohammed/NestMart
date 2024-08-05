@@ -10,13 +10,13 @@ import style from "./Chat.module.css";
 import Chats from "./components/Chats/Chats";
 import SelectedChat from "./components/SelectedChat/SelectedChat";
 
+// TODO: Remember messages notifications
+
 const Chat = ({ socket }) => {
   const { chatId } = useParams();
   const currentUser = useSelector((state: StoreState) => state.currentUser);
-
   /* Current user chats fetched in chats component
-    also used in selectedChat component 
-    when delete the chat from chat info */
+    also used in selectedChat component when deleting the chat in chat info */
   const [chats, setChats] = useState<ChatType[]>([]);
 
   return (
