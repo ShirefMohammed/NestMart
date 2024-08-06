@@ -7,9 +7,8 @@ import { MoonLoader } from "react-spinners";
 import { RegisterRequest } from "@shared/types/apiTypes";
 
 import { authAPI } from "../../api/authAPI";
-import axios from "../../api/axios";
 import { RgxList } from "../../utils/RgxList";
-import style from "./Register.module.css";
+import style from "./AuthRegister.module.css";
 
 const Register = () => {
   const nameRef = useRef<HTMLInputElement | null>(null);

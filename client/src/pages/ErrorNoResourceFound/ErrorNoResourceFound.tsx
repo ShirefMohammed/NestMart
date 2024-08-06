@@ -1,6 +1,6 @@
-import style from "./NoResourceFound.module.css";
+import style from "./ErrorNoResourceFound.module.css";
 
-const NoResourceFound = () => {
+const ErrorNoResourceFound = () => {
   return (
     <section className={style.no_resource_found}>
       <div>
@@ -11,4 +11,4 @@ const NoResourceFound = () => {
   );
 };
 
-export default NoResourceFound;
+export default ErrorNoResourceFound;

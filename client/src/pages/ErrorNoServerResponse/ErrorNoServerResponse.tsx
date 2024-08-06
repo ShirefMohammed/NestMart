@@ -1,6 +1,6 @@
-import style from "./NoServerResponse.module.css";
+import style from "./ErrorNoServerResponse.module.css";
 
-const NoServerResponse = () => {
+const ErrorNoServerResponse = () => {
   return (
     <section className={style.no_server_response}>
       <div>
@@ -11,4 +11,4 @@ const NoServerResponse = () => {
   );
 };
 
-export default NoServerResponse;
+export default ErrorNoServerResponse;

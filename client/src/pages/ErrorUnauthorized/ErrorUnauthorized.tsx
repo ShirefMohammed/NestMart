@@ -1,6 +1,6 @@
-import style from "./Unauthorized.module.css";
+import style from "./ErrorUnauthorized.module.css";
 
-const Unauthorized = () => {
+const ErrorUnauthorized = () => {
   return (
     <section className={style.unauthorized}>
       <div>
@@ -11,4 +11,4 @@ const Unauthorized = () => {
   );
 };
 
-export default Unauthorized;
+export default ErrorUnauthorized;

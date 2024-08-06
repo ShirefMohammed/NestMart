@@ -1,6 +1,6 @@
-import style from "./ServerError.module.css";
+import style from "./ErrorServerError.module.css";
 
-const ServerError = () => {
+const ErrorServerError = () => {
   return (
     <section className={style.server_error}>
       <div>
@@ -11,4 +11,4 @@ const ServerError = () => {
   );
 };
 
-export default ServerError;
+export default ErrorServerError;

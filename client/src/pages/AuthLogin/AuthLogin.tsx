@@ -6,11 +6,10 @@ import { MoonLoader } from "react-spinners";
 import { LoginRequest, LoginResponse } from "@shared/types/apiTypes";
 
 import { authAPI } from "../../api/authAPI";
-import axios from "../../api/axios";
 import { useNotify } from "../../hooks";
 import { setAccessToken } from "../../store/slices/accessTokenSlice";
 import { setUser } from "../../store/slices/userSlice";
-import style from "./Login.module.css";
+import style from "./AuthLogin.module.css";
 
 const Login = () => {
   const currentUser = useSelector((state: any) => state.currentUser);

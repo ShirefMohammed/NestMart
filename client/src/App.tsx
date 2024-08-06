@@ -4,17 +4,17 @@ import { io } from "socket.io-client";
 import { PersistLogin, RequireAuth, ToastContainerWithProps } from "./components";
 import {
   AdminWrapper,
+  AuthForgetPassword,
+  AuthLogin,
+  AuthRegister,
   AuthWrapper,
   Chat,
-  ForgetPassword,
-  Login,
+  ErrorNoResourceFound,
+  ErrorNoServerResponse,
+  ErrorNoTFoundPage,
+  ErrorServerError,
+  ErrorUnauthorized,
   MainWrapper,
-  NoResourceFound,
-  NoServerResponse,
-  NoTFoundPage,
-  Register,
-  ServerError,
-  Unauthorized,
 } from "./pages";
 import { ROLES_LIST } from "./utils/rolesList";
 
@@ -31,12 +31,12 @@ function App() {
             {/* Auth Routes - Public */}
             <Route path="/auth" element={<AuthWrapper />}>
               <Route index element={<Navigate to="login" />} />
-              <Route path="register" element={<Register />} />
-              <Route path="login" element={<Login />} />
-              <Route path="forgetPassword" element={<ForgetPassword />} />
+              <Route path="login" element={<AuthLogin />} />
+              <Route path="register" element={<AuthRegister />} />
+              <Route path="forgetPassword" element={<AuthForgetPassword />} />
             </Route>
 
-            {/* Auth Routes - Public */}
+            {/* Public Routes */}
             <Route path="/*" element={<MainWrapper />}>
               <Route path="home" element={"<Home />"} />
               <Route path="about" element={"<About />"} />
@@ -48,16 +48,16 @@ function App() {
               <Route path="categories:categoryTitle" element={"<categoryProducts />"} />
               <Route path="products:productId" element={"<Product />"} />
 
-              <Route path="*" element={<NoTFoundPage />} />
+              <Route path="*" element={<ErrorNoTFoundPage />} />
             </Route>
 
             {/* Error Handler Routes - Public */}
-            <Route path="/noServerResponse" element={<NoServerResponse />} />
-            <Route path="/serverError" element={<ServerError />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/noResourceFound" element={<NoResourceFound />} />
+            <Route path="/noServerResponse" element={<ErrorNoServerResponse />} />
+            <Route path="/serverError" element={<ErrorServerError />} />
+            <Route path="/unauthorized" element={<ErrorUnauthorized />} />
+            <Route path="/noResourceFound" element={<ErrorNoResourceFound />} />
 
-            {/* Protected Routes */}
+            {/* Chat Routes - Protected Routes */}
             <Route
               element={
                 <RequireAuth
@@ -69,25 +69,22 @@ function App() {
               <Route path="/chat/:chatId" element={<Chat socket={socket} />} />
             </Route>
 
+            {/* AdminDashboard - Protected Routes */}
             <Route
               element={<RequireAuth allowedRoles={[ROLES_LIST.Admin, ROLES_LIST.SuperAdmin]} />}
             >
-              <Route path="/adminDashboard" element={<AdminWrapper />}>
+              <Route path="/admin" element={<AdminWrapper />}>
                 <Route index element={"<Dashboard />"} />
+
+                <Route path="dashboard" element={"<Dashboard />"} />
 
                 <Route path="users" element={"<Users />"} />
 
                 <Route path="orders" element={"<Orders />"} />
 
                 <Route path="categories" element={"<Categories />"} />
-                <Route path="categories/new" element={"<CreateCategory />"} />
-                <Route path="categories/categoryId/update" element={"<updateCategory />"} />
 
                 <Route path="products" element={"<Products />"} />
-                <Route path="products/new" element={"<CreateProduct />"} />
-                <Route path="products/productId/update" element={"<updateProduct />"} />
-
-                <Route path="*" element={<NoTFoundPage />} />
               </Route>
             </Route>
           </Route>

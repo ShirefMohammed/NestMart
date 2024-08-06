@@ -1,6 +1,6 @@
-import style from "./NoTFoundPage.module.css";
+import style from "./ErrorNoTFoundPage.module.css";
 
-const NotFoundPage = () => {
+const ErrorNoTFoundPage = () => {
   return (
     <section className={style.not_found}>
       <div>
@@ -14,4 +14,4 @@ const NotFoundPage = () => {
   );
 };
 
-export default NotFoundPage;
+export default ErrorNoTFoundPage;

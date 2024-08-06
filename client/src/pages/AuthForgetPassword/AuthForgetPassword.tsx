@@ -5,8 +5,7 @@ import { MoonLoader } from "react-spinners";
 import { ForgetPasswordRequest } from "@shared/types/apiTypes";
 
 import { authAPI } from "../../api/authAPI";
-import axios from "../../api/axios";
-import style from "./ForgetPassword.module.css";
+import style from "./AuthForgetPassword.module.css";
 
 const ForgetPassword = () => {
   const emailRef = useRef<HTMLInputElement | null>(null);
