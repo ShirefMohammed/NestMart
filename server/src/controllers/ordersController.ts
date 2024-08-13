@@ -3,11 +3,18 @@ import {
   CreateOrderResponse,
   DeleteOrderRequest,
   DeleteOrderResponse,
+  GetAllOrdersRequest,
+  GetAllOrdersResponse,
   GetOrderRequest,
   GetOrderResponse,
   GetOrdersRequest,
   GetOrdersResponse,
 } from "@shared/types/apiTypes";
+import {
+  Order,
+  OrderItem,
+  OrderNotification,
+} from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
@@ -15,12 +22,43 @@ import { createImagesUrl } from "../utils/createImagesUrl";
 import { httpStatusText } from "../utils/httpStatusText";
 import { ROLES_LIST } from "../utils/rolesList";
 
+// TODO: Handle orders notifications for admins too to be like superAdmin.
+
 export const getOrders: ExpressHandler<
   GetOrdersRequest,
   GetOrdersResponse
 > = async (_req, res, next) => {
   try {
-    const orders = await db.getOrders(res.locals.userInfo._id);
+    let orders = await db.getOrders(res.locals.userInfo._id);
+
+    res.status(200).send({
+      statusText: httpStatusText.SUCCESS,
+      message: "",
+      data: { orders },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAllOrders: ExpressHandler<
+  GetAllOrdersRequest,
+  GetAllOrdersResponse
+> = async (req, res, next) => {
+  try {
+    const limit: number = req.query?.limit ? Number(req.query.limit) : 10;
+    const page: number = req.query?.page ? Number(req.query.page) : 1;
+    const skip: number = (page - 1) * limit;
+
+    const orders: Order[] = await db.getAllOrders(-1, limit, skip);
+
+    orders.forEach((order: Order) => {
+      if (order.creator?.avatar) {
+        order.creator.avatar = createImagesUrl("avatars", [
+          order.creator.avatar,
+        ])[0];
+      }
+    });
 
     res.status(200).send({
       statusText: httpStatusText.SUCCESS,
@@ -37,7 +75,7 @@ export const getOrder: ExpressHandler<
   GetOrderResponse
 > = async (req, res, next) => {
   try {
-    const order = await db.findOrderById(+req.params.orderId, true);
+    const order: Order = await db.findOrderById(+req.params.orderId, true);
 
     if (!order) {
       return res.status(404).send({
@@ -46,16 +84,27 @@ export const getOrder: ExpressHandler<
       });
     }
 
-    if (res.locals.userInfo._id !== order.creatorId) {
+    if (
+      res.locals.userInfo._id !== order.creatorId &&
+      res.locals.userInfo.role !== ROLES_LIST.Admin &&
+      res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
+    ) {
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
     }
 
-    order.items.forEach((item: any) => {
-      item.product.images = createImagesUrl("products", item.product.images);
-    });
+    if (order.orderItems) {
+      order.orderItems.forEach((orderItem: OrderItem) => {
+        if (orderItem.product?.images) {
+          orderItem.product.images = createImagesUrl(
+            "products",
+            orderItem.product.images,
+          );
+        }
+      });
+    }
 
     res.status(200).send({
       statusText: httpStatusText.SUCCESS,
@@ -67,7 +116,6 @@ export const getOrder: ExpressHandler<
   }
 };
 
-// TODO: find super admin
 export const createOrder: ExpressHandler<
   CreateOrderRequest,
   CreateOrderResponse
@@ -93,7 +141,7 @@ export const createOrder: ExpressHandler<
       );
 
       if (!isOrderItemProductFound) {
-        return res.status(400).send({
+        return res.status(404).send({
           statusText: httpStatusText.FAIL,
           message: `Product with id ${orderItem.productId} is not found.`,
         });
@@ -106,17 +154,21 @@ export const createOrder: ExpressHandler<
       req.body.orderItems!,
     );
 
+    const superAdmin = await db.findSuperAdmin("_id");
+
     // Create order notification
-    const orderNotification = await db.createNotification(
-      2, // superAdmin
+    const orderNotification: OrderNotification = await db.createNotification(
+      superAdmin._id,
       res.locals.userInfo._id,
       "order",
       createdOrder._id,
     );
 
-    orderNotification.sender.avatar = createImagesUrl("avatars", [
-      orderNotification.sender.avatar,
-    ])[0];
+    if (orderNotification.sender) {
+      orderNotification.sender.avatar = createImagesUrl("avatars", [
+        orderNotification.sender.avatar,
+      ])[0];
+    }
 
     res.status(201).send({
       statusText: httpStatusText.SUCCESS,
@@ -128,13 +180,12 @@ export const createOrder: ExpressHandler<
   }
 };
 
-// Delete order notification
 export const deleteOrder: ExpressHandler<
   DeleteOrderRequest,
   DeleteOrderResponse
 > = async (req, res, next) => {
   try {
-    const order = await db.findOrderById(+req.params.orderId, false);
+    const order: Order = await db.findOrderById(+req.params.orderId, false);
 
     if (!order) {
       return res.status(404).send({
@@ -153,6 +204,8 @@ export const deleteOrder: ExpressHandler<
         message: "You don't have access to this resource.",
       });
     }
+
+    await db.deleteOrderNotification(+req.params.orderId);
 
     await db.deleteOrder(+req.params.orderId);
 

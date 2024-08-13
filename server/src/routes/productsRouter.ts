@@ -5,6 +5,7 @@ import {
   deleteProduct,
   getProduct,
   getProducts,
+  searchProducts,
   updateProduct,
 } from "../controllers/productsController";
 import { verifyJWT } from "../middleware/verifyJWT";
@@ -25,6 +26,8 @@ router
     upload.array("images"),
     createProduct,
   );
+
+router.route("/search").get(searchProducts);
 
 router
   .route("/:productId")

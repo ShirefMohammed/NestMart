@@ -8,6 +8,11 @@ export { default as ErrorUnauthorized } from "./ErrorUnauthorized/ErrorUnauthori
 export { default as ErrorNoResourceFound } from "./ErrorNoResourceFound/ErrorNoResourceFound.tsx";
 export { default as ErrorNoTFoundPage } from "./ErrorNoTFoundPage/ErrorNoTFoundPage.tsx";
 export { default as AdminWrapper } from "./AdminWrapper/AdminWrapper.tsx";
+export { default as AdminDashboard } from "./AdminDashboard/AdminDashboard.tsx";
+export { default as AdminUsers } from "./AdminUsers/AdminUsers.tsx";
+export { default as AdminOrders } from "./AdminOrders/AdminOrders.tsx";
+export { default as AdminCategories } from "./AdminCategories/AdminCategories.tsx";
+export { default as AdminProducts } from "./AdminProducts/AdminProducts.tsx";
 export { default as MainWrapper } from "./MainWrapper/MainWrapper.tsx";
 export { default as Home } from "./Home/Home.jsx";
 export { default as Chat } from "./Chat/Chat.tsx";

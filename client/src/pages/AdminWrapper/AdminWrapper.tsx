@@ -1,14 +1,19 @@
-import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 
-import style from "./AdminWrapper.module.css";
+import DefaultLayout from "./components/Layout/DefaultLayout";
 
 const AdminWrapper = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
-    <div className={style.main_wrapper}>
-      {/* <Sidebar /> */} Sidebar
-      {/* <Header /> */} Header
+    <DefaultLayout>
       <Outlet />
-    </div>
+    </DefaultLayout>
   );
 };
 

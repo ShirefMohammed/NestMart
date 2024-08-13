@@ -30,7 +30,7 @@ const CreateChat = ({ chats, setChats, setOpenCreateChat }) => {
 
       if (!searchKey) return setUsers([]);
 
-      const res = await usersAPI.searchUsers(searchKey, 10);
+      const res = await usersAPI.searchUsers(searchKey, 1, 10);
 
       const data: SearchUsersResponse = res.data.data;
 

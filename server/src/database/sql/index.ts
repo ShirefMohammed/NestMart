@@ -396,14 +396,16 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async createCategory(category: Partial<Category>): Promise<void> {
+  async createCategory(category: Partial<Category>): Promise<any> {
     try {
-      await this.db.run(
+      const result = await this.db.run(
         "INSERT INTO Categories (title, image, createdAt) VALUES (?,?,?)",
         category.title,
         category.image,
         Date.now(),
       );
+
+      return this.findCategoryById(result.lastID!);
     } catch (err) {
       console.error("Error in createCategory:", err);
       throw err;
@@ -413,7 +415,7 @@ export class sqliteDB implements Datastore {
   async updateCategory(
     categoryId: number,
     category: Partial<Category>,
-  ): Promise<void> {
+  ): Promise<any> {
     try {
       if (category.title) {
         await this.db.run(
@@ -430,6 +432,8 @@ export class sqliteDB implements Datastore {
           categoryId,
         );
       }
+
+      return this.findCategoryById(categoryId);
     } catch (err) {
       console.error("Error in updateCategory:", err);
       throw err;
@@ -457,6 +461,28 @@ export class sqliteDB implements Datastore {
         ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
         ${limit ? `LIMIT ${limit}` : ""} 
         ${skip ? `OFFSET ${skip}` : ""}`,
+      );
+    } catch (err) {
+      console.error("Error in getCategories:", err);
+      throw err;
+    }
+  }
+
+  searchCategories(
+    searchKey: string,
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      return this.db.all(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Categories 
+        WHERE title LIKE ? 
+        ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
+        ${limit ? `LIMIT ${limit}` : ""} 
+        ${skip ? `OFFSET ${skip}` : ""}`,
+        `%${searchKey}%`,
       );
     } catch (err) {
       console.error("Error in getCategories:", err);
@@ -551,9 +577,9 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async createProduct(product: Partial<Product>): Promise<void> {
+  async createProduct(product: Partial<Product>): Promise<any> {
     try {
-      await this.db.run(
+      const result = await this.db.run(
         "INSERT INTO Products (title, desc, price, createdAt, updatedAt, discount, available, categoryId) VALUES (?,?,?,?,?,?,?,?)",
         product.title,
         product.desc,
@@ -565,19 +591,17 @@ export class sqliteDB implements Datastore {
         +product.categoryId!,
       );
 
-      const createdProduct = await this.findProductByTitle(
-        product.title!,
-        "_id",
-        false,
-      );
+      if (!result.lastID) return null;
 
-      product.images!.forEach(async (image) => {
+      for (const image of product.images!) {
         await this.db.run(
           "INSERT INTO Products_Images (productId, image) VALUES (?,?)",
-          createdProduct._id,
+          result.lastID,
           image,
         );
-      });
+      }
+
+      return this.findProductById(result.lastID);
     } catch (err) {
       console.error("Error in createProduct:", err);
       throw err;
@@ -643,14 +667,13 @@ export class sqliteDB implements Datastore {
           productId,
         );
 
-        product.images.map(
-          async (image) =>
-            await this.db.run(
-              `INSERT INTO Products_Images (productId, image) VALUES (?, ?)`,
-              productId,
-              image,
-            ),
-        );
+        for (const image of product.images) {
+          await this.db.run(
+            `INSERT INTO Products_Images (productId, image) VALUES (?, ?)`,
+            productId,
+            image,
+          );
+        }
       }
 
       await this.db.run(
@@ -658,6 +681,8 @@ export class sqliteDB implements Datastore {
         Date.now(),
         productId,
       );
+
+      return this.findProductById(productId);
     } catch (err) {
       console.error("Error in updateProduct:", err);
       throw err;
@@ -704,6 +729,40 @@ export class sqliteDB implements Datastore {
       return products;
     } catch (err) {
       console.error("Error in getProducts:", err);
+      throw err;
+    }
+  }
+
+  async searchProducts(
+    searchKey: string,
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      const products = await this.db.all(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Products 
+        WHERE title LIKE ? or desc LIKE ? 
+        ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
+        ${limit ? `LIMIT ${limit}` : ""} 
+        ${skip ? `OFFSET ${skip}` : ""}`,
+        `%${searchKey}%`,
+        `%${searchKey}%`,
+      );
+
+      for (const product of products) {
+        const imagesItems = await this.db.all(
+          `SELECT image FROM Products_Images WHERE productId = ?`,
+          product._id,
+        );
+
+        product.images = imagesItems.map((item) => item.image);
+      }
+
+      return products;
+    } catch (err) {
+      console.error("Error in searchProducts:", err);
       throw err;
     }
   }
@@ -820,10 +879,9 @@ export class sqliteDB implements Datastore {
 
         for (const item of orderItems) {
           item.product = await this.findProductById(item.productId);
-          delete item.productId;
         }
 
-        order.items = orderItems;
+        order.orderItems = orderItems;
       }
 
       return order;
@@ -834,7 +892,7 @@ export class sqliteDB implements Datastore {
   }
 
   async createOrder(
-    userId: number,
+    creatorId: number,
     orderItems: Pick<OrderItem, "productId" | "quantity" | "totalPrice">[],
   ): Promise<any> {
     try {
@@ -850,40 +908,41 @@ export class sqliteDB implements Datastore {
 
       orderItems = mergeOrderItems(orderItems as OrderItem[]);
 
-      for (const item of orderItems) {
-        const itemProduct = await this.findProductById(
-          item.productId,
-          "price",
+      for (const orderItem of orderItems) {
+        const orderItemProduct = await this.findProductById(
+          orderItem.productId,
+          "price, discount",
           false,
         );
 
-        item.totalPrice = +item.quantity * +itemProduct.price;
-        totalOrderPrice += item.totalPrice;
+        orderItem.totalPrice =
+          +orderItem.quantity *
+          (+orderItemProduct.price -
+            (+orderItemProduct.discount / 100) * +orderItemProduct.price);
+
+        totalOrderPrice += orderItem.totalPrice;
       }
 
-      if (totalOrderPrice === 0) return;
+      if (!totalOrderPrice || totalOrderPrice === 0) return;
 
       const result = await this.db.run(
         "INSERT INTO Orders (creatorId, totalPrice, createdAt) VALUES (?,?,?)",
-        userId,
+        creatorId,
         totalOrderPrice,
         Date.now(),
       );
 
-      for (const item of orderItems) {
+      for (const orderItem of orderItems) {
         await this.db.run(
           "INSERT INTO Orders_Items (orderId, productId, quantity, totalPrice) VALUES (?,?,?,?)",
           result.lastID,
-          +item.productId,
-          +item.quantity,
-          item.totalPrice,
+          +orderItem.productId,
+          +orderItem.quantity,
+          +orderItem.totalPrice,
         );
       }
 
-      return await this.db.get(
-        "SELECT * FROM Orders WHERE _id = ?",
-        result.lastID,
-      );
+      return this.db.get("SELECT * FROM Orders WHERE _id = ?", result.lastID);
     } catch (err) {
       console.error("Error in createOrder:", err);
       throw err;
@@ -900,14 +959,51 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async getOrders(userId: number): Promise<any> {
+  async deleteOrderNotification(orderId: number): Promise<void> {
     try {
-      return await this.db.all(
-        `SELECT * FROM Orders WHERE creatorId = ?`,
-        userId,
+      await this.db.run(
+        "DELETE FROM Orders_Notifications WHERE orderId = ?",
+        orderId,
       );
     } catch (err) {
+      console.error("Error in deleteOrderNotification:", err);
+      throw err;
+    }
+  }
+
+  async getOrders(userId: number): Promise<any> {
+    try {
+      return this.db.all(`SELECT * FROM Orders WHERE creatorId = ?`, userId);
+    } catch (err) {
       console.error("Error in getOrders:", err);
+      throw err;
+    }
+  }
+
+  async getAllOrders(
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      const orders = await this.db.all(
+        `SELECT ${selectedFields ? selectedFields : "*"} FROM Orders 
+        ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
+        ${limit ? `LIMIT ${limit}` : ""} 
+        ${skip ? `OFFSET ${skip}` : ""}`,
+      );
+
+      for (const order of orders) {
+        order.creator = await this.findUserById(
+          order.creatorId,
+          "_id, name, email, avatar, role, phone, country, city",
+        );
+      }
+
+      return orders;
+    } catch (err) {
+      console.error("Error in getAllOrders:", err);
       throw err;
     }
   }
@@ -949,7 +1045,7 @@ export class sqliteDB implements Datastore {
         Date.now(),
       );
 
-      return await this.findChatById(result.lastID!);
+      return this.findChatById(result.lastID!);
     } catch (err) {
       console.error("Error in createChat:", err);
       throw err;
@@ -980,7 +1076,7 @@ export class sqliteDB implements Datastore {
         chatId,
       );
 
-      return await this.findChatById(chatId);
+      return this.findChatById(chatId);
     } catch (err) {
       console.error("Error in updateChat:", err);
       throw err;
@@ -1145,14 +1241,14 @@ export class sqliteDB implements Datastore {
   ): Promise<any> {
     try {
       if (type === "message") {
-        return await this.db.get(
+        return this.db.get(
           `SELECT ${selectedFields ? selectedFields : "*"} FROM Messages_Notifications WHERE _id = ?`,
           notificationId,
         );
       }
 
       if (type === "order") {
-        return await this.db.get(
+        return this.db.get(
           `SELECT ${selectedFields ? selectedFields : "*"} FROM Orders_Notifications WHERE _id = ?`,
           notificationId,
         );
@@ -1204,7 +1300,6 @@ export class sqliteDB implements Datastore {
         createdNotification.senderId,
         "_id, name, email, avatar",
       );
-      delete createdNotification.senderId;
 
       return createdNotification;
     } catch (err) {

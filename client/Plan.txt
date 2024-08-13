@@ -20,3 +20,5 @@ About, Contact, 404:
 Chats:
 
 Notifications:
+
+https://flowbite.com/docs/components/tables/

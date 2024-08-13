@@ -4,6 +4,7 @@ import {
   Message,
   Order,
   OrderItem,
+  OrderNotification,
   Product,
   User,
 } from "./entitiesTypes";
@@ -75,8 +76,11 @@ export interface GetUserResponse {
 
 export type UpdateUserRequest = Pick<
   User,
-  "name" | "avatar" | "password" | "phone" | "country" | "city"
-> & { oldPassword: string };
+  "name" | "password" | "phone" | "country" | "city"
+> & {
+  avatar: File;
+  oldPassword: string;
+};
 export interface UpdateUserResponse {}
 
 export interface DeleteUserRequest {
@@ -90,17 +94,22 @@ export interface GetCategoriesResponse {
   categories: Category[];
 }
 
+export type SearchCategoriesRequest = null;
+export interface SearchCategoriesResponse {
+  categories: Category[];
+}
+
 export type GetCategoryRequest = null;
 export interface GetCategoryResponse {
   category: Category;
 }
 
-export type CreateCategoryRequest = Pick<Category, "title" | "image">;
+export type CreateCategoryRequest = Pick<Category, "title"> & { image : File };
 export interface CreateCategoryResponse {
   newCategory: Category;
 }
 
-export type UpdateCategoryRequest = Pick<Category, "title" | "image">;
+export type UpdateCategoryRequest = Pick<Category, "title"> & { image?: File };
 export interface UpdateCategoryResponse {
   updatedCategory: Category;
 }
@@ -119,29 +128,28 @@ export interface GetProductsResponse {
   products: Product[];
 }
 
+export type SearchProductsRequest = null;
+export interface SearchProductsResponse {
+  products: Product[];
+}
+
 export type GetProductRequest = null;
 export interface GetProductResponse {
   product: Product;
 }
 
-export type CreateProductRequest = Omit<
+export type CreateProductRequest = Pick<
   Product,
-  "_id" | "createdAt" | "updatedAt"
->;
+  "title" | "desc" | "price" | "discount" | "available" | "categoryId"
+> & { images: File[] };
 export interface CreateProductResponse {
   newProduct: Product;
 }
 
 export type UpdateProductRequest = Pick<
   Product,
-  | "title"
-  | "desc"
-  | "discount"
-  | "price"
-  | "available"
-  | "categoryId"
-  | "images"
-> & { deletedImages: string[] };
+  "title" | "desc" | "price" | "discount" | "available" | "categoryId"
+> & { deletedImages: string[], images: File[] };
 export interface UpdateProductResponse {
   updatedProduct: Product;
 }
@@ -169,6 +177,11 @@ export interface GetOrdersResponse {
   orders: Order[];
 }
 
+export type GetAllOrdersRequest = null;
+export interface GetAllOrdersResponse {
+  orders: Order[];
+}
+
 export type GetOrderRequest = null;
 export interface GetOrderResponse {
   order: Order;
@@ -179,7 +192,7 @@ export interface CreateOrderRequest {
 }
 export interface CreateOrderResponse {
   createdOrder: Order;
-  orderNotification: Notification;
+  orderNotification: OrderNotification;
 }
 
 export interface DeleteOrderRequest {}

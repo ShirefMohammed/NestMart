@@ -8,7 +8,7 @@
   --main: #3bb77e;
   --text: #253d4e;
   --light-green: #def9ec;
-  --gray: #adadad;
+  --heavy-gray: #adadad;
 }
 
 * {
@@ -46,4 +46,10 @@ img {
   to {
     background-position-x: -200%;
   }
+}
+
+/* Scroll bar styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a0a0a0 #f0f0f0;
 }

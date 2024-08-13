@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 
 import {
+  AccessTokenUserInfo,
   DeleteUserRequest,
   DeleteUserResponse,
   GetUserRequest,
@@ -28,18 +29,18 @@ export const getUsers: ExpressHandler<
   GetUsersResponse
 > = async (req, res, next) => {
   try {
-    const limit = req.query?.limit ? Number(req.query.limit) : 10;
-    const page = req.query?.page ? Number(req.query.page) : 1;
-    const skip = (page - 1) * limit;
+    const limit: number = req.query?.limit ? Number(req.query.limit) : 10;
+    const page: number = req.query?.page ? Number(req.query.page) : 1;
+    const skip: number = (page - 1) * limit;
 
-    const users = await db.getUsers(
+    const users: User[] = await db.getUsers(
       -1,
       limit,
       skip,
       "_id, name, email, avatar, createdAt, updatedAt, isVerified, role, phone, country, city",
     );
 
-    users.forEach((user) => {
+    users.forEach((user: User) => {
       user.avatar = createImagesUrl("avatars", [user.avatar])[0];
     });
 
@@ -58,10 +59,10 @@ export const searchUsers: ExpressHandler<
   SearchUsersResponse
 > = async (req, res, next) => {
   try {
-    const searchKey = req.query?.searchKey;
-    const limit = req.query?.limit ? Number(req.query.limit) : 10;
-    const page = req.query?.page ? Number(req.query.page) : 1;
-    const skip = (page - 1) * limit;
+    const searchKey: string = req.query?.searchKey;
+    const limit: number = req.query?.limit ? Number(req.query.limit) : 10;
+    const page: number = req.query?.page ? Number(req.query.page) : 1;
+    const skip: number = (page - 1) * limit;
 
     if (!searchKey) {
       return res.status(200).send({
@@ -71,7 +72,7 @@ export const searchUsers: ExpressHandler<
       });
     }
 
-    const users = await db.searchUsers(
+    const users: User[] = await db.searchUsers(
       searchKey,
       -1,
       limit,
@@ -79,7 +80,7 @@ export const searchUsers: ExpressHandler<
       "_id, name, email, avatar, createdAt, updatedAt, isVerified, role, phone, country, city",
     );
 
-    users.forEach((user) => {
+    users.forEach((user: User) => {
       user.avatar = createImagesUrl("avatars", [user.avatar])[0];
     });
 
@@ -110,7 +111,7 @@ export const getUser: ExpressHandler<GetUserRequest, GetUserResponse> = async (
       });
     }
 
-    let user = await db.findUserById(
+    let user: User = await db.findUserById(
       +req.params.userId,
       "_id, name, email, avatar, createdAt, updatedAt, isVerified, role, phone, country, city",
     );
@@ -139,7 +140,7 @@ export const updateUser: ExpressHandler<
   UpdateUserResponse
 > = async (req, res, next) => {
   try {
-    const userInfo = res.locals.userInfo;
+    const userInfo: AccessTokenUserInfo = res.locals.userInfo;
     const { name, country, city, phone, oldPassword, password } = req.body;
 
     if (userInfo._id !== +req.params.userId) {
@@ -149,7 +150,7 @@ export const updateUser: ExpressHandler<
       });
     }
 
-    const user = await db.findUserById(userInfo._id);
+    const user: User = await db.findUserById(userInfo._id);
 
     if (!user) {
       return res.status(404).send({
@@ -158,7 +159,7 @@ export const updateUser: ExpressHandler<
       });
     }
 
-    let message = "Account updated successfully.";
+    let message: string = "Account updated successfully.";
     const updatedFields: Partial<User> = {};
 
     if (name) {
@@ -182,19 +183,6 @@ export const updateUser: ExpressHandler<
     }
 
     if (req?.file?.filename) {
-      if (user.avatar !== "defaultAvatar.png") {
-        await deleteFile("avatars", user.avatar);
-      }
-
-      await handleImageQuality(
-        "avatars",
-        req.file.filename,
-        req.file.filename,
-        225,
-        225,
-        80,
-      );
-
       updatedFields.avatar = req.file.filename;
     }
 
@@ -221,6 +209,22 @@ export const updateUser: ExpressHandler<
 
     await db.updateUser(userInfo._id, updatedFields);
 
+    // Delete the old user.avatar image if not equal defaultAvatar.png
+    if (req?.file?.filename) {
+      if (user.avatar !== "defaultAvatar.png") {
+        await deleteFile("avatars", user.avatar);
+      }
+
+      await handleImageQuality(
+        "avatars",
+        req.file.filename,
+        req.file.filename,
+        225,
+        225,
+        80,
+      );
+    }
+
     res.status(200).send({
       statusText: httpStatusText.SUCCESS,
       message: message,
@@ -236,7 +240,7 @@ export const deleteUser: ExpressHandler<
   DeleteUserResponse
 > = async (req, res, next) => {
   try {
-    const userInfo = res.locals.userInfo;
+    const userInfo: AccessTokenUserInfo = res.locals.userInfo;
     const { password } = req.body;
 
     if (
@@ -250,15 +254,23 @@ export const deleteUser: ExpressHandler<
       });
     }
 
-    const user = await db.findUserById(
+    const user: User = await db.findUserById(
       +req.params.userId,
-      "_id, avatar, password",
+      "_id, avatar, password, role",
     );
 
     if (!user) {
       return res.status(404).send({
         statusText: httpStatusText.FAIL,
         message: "Account is not found.",
+      });
+    }
+
+    // Prevent deleting admins and superAdmins
+    if (user.role === ROLES_LIST.Admin || user.role === ROLES_LIST.SuperAdmin) {
+      return res.status(403).send({
+        statusText: httpStatusText.FAIL,
+        message: "Admin or SuperAdmin can not be deleted.",
       });
     }
 

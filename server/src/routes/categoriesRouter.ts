@@ -6,6 +6,7 @@ import {
   getCategories,
   getCategory,
   getCategoryProducts,
+  searchCategories,
   updateCategory,
 } from "../controllers/categoriesController";
 import { verifyJWT } from "../middleware/verifyJWT";
@@ -26,6 +27,8 @@ router
     upload.single("image"),
     createCategory,
   );
+
+router.route("/search").get(searchCategories);
 
 router
   .route("/:categoryId")

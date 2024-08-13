@@ -53,6 +53,8 @@ export interface Order {
   creatorId: number;
   totalPrice: number;
   createdAt: number;
+  creator?: User;
+  orderItems?: OrderItem[],
 }
 
 export interface OrderItem {
@@ -60,6 +62,7 @@ export interface OrderItem {
   productId: number;
   quantity: number;
   totalPrice: number;
+  product?: Product;
 }
 
 export interface Chat {

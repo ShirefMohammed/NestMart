@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Admin Dashboard Templete
+free-react-tailwind-admin-dashboard-main

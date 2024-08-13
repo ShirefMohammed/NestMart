@@ -3,6 +3,11 @@ import { io } from "socket.io-client";
 
 import { PersistLogin, RequireAuth, ToastContainerWithProps } from "./components";
 import {
+  AdminCategories,
+  AdminDashboard,
+  AdminOrders,
+  AdminProducts,
+  AdminUsers,
   AdminWrapper,
   AuthForgetPassword,
   AuthLogin,
@@ -42,11 +47,14 @@ function App() {
               <Route path="about" element={"<About />"} />
               <Route path="contact" element={"<Contact />"} />
 
-              <Route path="cart" element={"<Cart />"} />
-              <Route path="orders" element={"<Orders />"} />
+              <Route path="user/:userId/profile" element={"<Profile />"} />
+              <Route path="user/:userId/settings" element={"<Settings />"} />
 
-              <Route path="categories:categoryTitle" element={"<categoryProducts />"} />
-              <Route path="products:productId" element={"<Product />"} />
+              <Route path="user/:userId/cart" element={"<Cart />"} />
+              <Route path="user/:userId/orders" element={"<Orders />"} />
+
+              <Route path="categories/:categoryId/Products" element={"<categoryProducts />"} />
+              <Route path="products/:productId" element={"<Product />"} />
 
               <Route path="*" element={<ErrorNoTFoundPage />} />
             </Route>
@@ -74,17 +82,17 @@ function App() {
               element={<RequireAuth allowedRoles={[ROLES_LIST.Admin, ROLES_LIST.SuperAdmin]} />}
             >
               <Route path="/admin" element={<AdminWrapper />}>
-                <Route index element={"<Dashboard />"} />
+                <Route index element={<AdminDashboard />} />
 
-                <Route path="dashboard" element={"<Dashboard />"} />
+                <Route path="dashboard" element={<AdminDashboard />} />
 
-                <Route path="users" element={"<Users />"} />
+                <Route path="users" element={<AdminUsers socket={socket} />} />
 
-                <Route path="orders" element={"<Orders />"} />
+                <Route path="orders" element={<AdminOrders />} />
 
-                <Route path="categories" element={"<Categories />"} />
+                <Route path="categories" element={<AdminCategories />} />
 
-                <Route path="products" element={"<Products />"} />
+                <Route path="products" element={<AdminProducts />} />
               </Route>
             </Route>
           </Route>

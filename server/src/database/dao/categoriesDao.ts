@@ -5,16 +5,21 @@ export interface CategoriesDao {
 
   findCategoryByTitle(title: string, selectedFields?: string): Promise<any>;
 
-  createCategory(category: Partial<Category>): Promise<void>;
+  createCategory(category: Partial<Category>): Promise<any>;
 
-  updateCategory(
-    categoryId: number,
-    category: Partial<Category>,
-  ): Promise<void>;
+  updateCategory(categoryId: number, category: Partial<Category>): Promise<any>;
 
   deleteCategory(categoryId: number): Promise<void>;
 
   getCategories(
+    order?: number,
+    limit?: number,
+    skip?: number,
+    selectedFields?: string,
+  ): Promise<any[]>;
+
+  searchCategories(
+    searchKey: string,
     order?: number,
     limit?: number,
     skip?: number,

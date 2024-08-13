@@ -181,6 +181,7 @@ delete: /products/productId
 ```
 get: /orders
 post: /orders
+get: /orders/all
 get: /orders/orderId
 delete: /orders/orderId
 ```
