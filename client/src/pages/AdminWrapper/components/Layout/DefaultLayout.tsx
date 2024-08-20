@@ -1,10 +1,18 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import Header from "../Header/index";
 import Sidebar from "../Sidebar/index";
 
 const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    contentRef.current?.scrollTo(0, 0);
+  }, [pathname]);
 
   return (
     <section className="dark:bg-boxdark-2 dark:text-bodydark font-normal text-base text-body bg-whiten relative z-1">
@@ -15,7 +23,10 @@ const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        <div
+          ref={contentRef}
+          className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden"
+        >
           {/* <!-- ===== Header Start ===== --> */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
           {/* <!-- ===== Header End ===== --> */}

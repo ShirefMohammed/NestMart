@@ -5,7 +5,7 @@ export interface OrdersDao {
 
   createOrder(
     creatorId: number,
-    orderItems: Pick<OrderItem, "productId" | "quantity" | "totalPrice">[],
+    orderItems: Partial<Pick<OrderItem, "productId" | "quantity" | "totalPrice">>[],
   ): Promise<any>;
 
   deleteOrder(orderId: number): Promise<void>;

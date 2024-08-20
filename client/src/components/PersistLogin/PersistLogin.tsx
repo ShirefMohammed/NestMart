@@ -1,12 +1,16 @@
-import { StoreState } from "client/src/store/store";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Outlet } from "react-router-dom";
 
+import { GetCartProductsResponse } from "@shared/types/apiTypes";
+
 import { FirstReqLoadingMsg } from "../";
+import { cartAPI } from "../../api/cartAPI";
 import NestMartLogo from "../../assets/NestMartLogo.png";
 import { useAxiosPrivate, useHandleErrors, useRefreshToken } from "../../hooks";
+import { setCart } from "../../store/slices/cartSlice";
 import { pushNotification, setNotifications } from "../../store/slices/notificationsSlice";
+import { StoreState } from "../../store/store";
 import style from "./PersistLogin.module.css";
 
 // TODO: Handle notifications type and socket in PersistLogin
@@ -37,6 +41,22 @@ const PersistLogin = ({ socket }) => {
 
     verifyRefreshToken();
   }, []);
+
+  // Fetch currentUser cart
+  useEffect(() => {
+    const fetchCartProduct = async () => {
+      try {
+        if (!accessToken) return;
+        const res = await cartAPI.getCartProducts();
+        const data: GetCartProductsResponse = res.data.data;
+        dispatch(setCart(data.products));
+      } catch (err) {
+        handleErrors(err);
+      }
+    };
+
+    fetchCartProduct();
+  }, [accessToken]);
 
   // Fetch currentUser notifications
   useEffect(() => {

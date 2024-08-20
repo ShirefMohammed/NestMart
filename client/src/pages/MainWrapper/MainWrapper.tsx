@@ -1,15 +1,13 @@
 import { Outlet } from "react-router-dom";
 
-import style from "./MainWrapper.module.css";
+import DefaultLayout from "./components/Layout/DefaultLayout";
 
-const MainWrapper = () => {
+const AdminWrapper = () => {
   return (
-    <div className={style.main_wrapper}>
-      {/* <Header /> */} Header
+    <DefaultLayout>
       <Outlet />
-      {/* <Footer /> */} Footer
-    </div>
+    </DefaultLayout>
   );
 };
 
-export default MainWrapper;
+export default AdminWrapper;

@@ -130,8 +130,9 @@ const OrderItemCard = ({ orderItem }: { orderItem: OrderItem }) => {
 
           <p className="text-base dark:text-white xl:text-lg font-semibold leading-6 text-gray-800">
             $
-            {orderItem.product!.price -
-              (orderItem.product!.discount / 100) * orderItem.product!.price}
+            {(orderItem.product!.price -
+              (orderItem.product!.discount / 100) * orderItem.product!.price) *
+              orderItem.quantity}
           </p>
         </div>
       </div>

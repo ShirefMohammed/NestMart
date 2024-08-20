@@ -13,13 +13,21 @@ import {
   AuthLogin,
   AuthRegister,
   AuthWrapper,
+  CategoryProducts,
   Chat,
   ErrorNoResourceFound,
   ErrorNoServerResponse,
   ErrorNoTFoundPage,
   ErrorServerError,
   ErrorUnauthorized,
+  Home,
   MainWrapper,
+  Product,
+  SearchProduct,
+  UserCart,
+  UserOrders,
+  UserProfile,
+  UserSettings,
 } from "./pages";
 import { ROLES_LIST } from "./utils/rolesList";
 
@@ -43,18 +51,25 @@ function App() {
 
             {/* Public Routes */}
             <Route path="/*" element={<MainWrapper />}>
-              <Route path="home" element={"<Home />"} />
-              <Route path="about" element={"<About />"} />
-              <Route path="contact" element={"<Contact />"} />
+              <Route index element={<Home />} />
+              <Route path="home" element={<Home />} />
 
-              <Route path="user/:userId/profile" element={"<Profile />"} />
-              <Route path="user/:userId/settings" element={"<Settings />"} />
+              <Route path="categories/:categoryId/products" element={<CategoryProducts />} />
+              <Route path="products/search" element={<SearchProduct />} />
+              <Route path="products/:productId" element={<Product />} />
 
-              <Route path="user/:userId/cart" element={"<Cart />"} />
-              <Route path="user/:userId/orders" element={"<Orders />"} />
-
-              <Route path="categories/:categoryId/Products" element={"<categoryProducts />"} />
-              <Route path="products/:productId" element={"<Product />"} />
+              <Route
+                element={
+                  <RequireAuth
+                    allowedRoles={[ROLES_LIST.User, ROLES_LIST.Admin, ROLES_LIST.SuperAdmin]}
+                  />
+                }
+              >
+                <Route path="cart" element={<UserCart />} />
+                <Route path="orders" element={<UserOrders />} />
+                <Route path="users/:userId/profile" element={<UserProfile />} />
+                <Route path="settings" element={<UserSettings />} />
+              </Route>
 
               <Route path="*" element={<ErrorNoTFoundPage />} />
             </Route>

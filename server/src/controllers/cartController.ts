@@ -15,17 +15,10 @@ import { httpStatusText } from "../utils/httpStatusText";
 export const getCartProducts: ExpressHandler<
   GetCartProductsRequest,
   GetCartProductsResponse
-> = async (req, res, next) => {
+> = async (_req, res, next) => {
   try {
-    const limit = req.query?.limit ? Number(req.query.limit) : 10;
-    const page = req.query?.page ? Number(req.query.page) : 1;
-    const skip = (page - 1) * limit;
-
     const products = await db.getCartProducts(
-      res.locals.userInfo._id,
-      -1,
-      limit,
-      skip,
+      res.locals.userInfo._id
     );
 
     products.forEach((product) => {

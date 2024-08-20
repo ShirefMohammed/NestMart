@@ -80,7 +80,10 @@ const CreateChat = ({ chats, setChats, setOpenCreateChat }) => {
       <form
         className={style.container}
         style={createChatLoad ? { overflow: "hidden" } : {}}
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={(e) => {
+          e.preventDefault();
+          search();
+        }}
       >
         {/* Title */}
         <h2>Create Chat</h2>
@@ -106,7 +109,7 @@ const CreateChat = ({ chats, setChats, setOpenCreateChat }) => {
             onChange={(e) => setSearchKey(e.target.value)}
           />
 
-          <button type="button" title="search" onClick={search}>
+          <button type="button" title="search">
             <FontAwesomeIcon icon={faMagnifyingGlass} />
           </button>
         </div>

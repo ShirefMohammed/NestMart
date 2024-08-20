@@ -1,3 +1,5 @@
+import { DeleteUserRequest } from "@shared/types/apiTypes";
+
 import { axiosPrivate } from "./axios";
 
 class UsersAPI {
@@ -11,8 +13,20 @@ class UsersAPI {
     );
   }
 
-  async deleteUser(userId: number): Promise<void> {
-    await axiosPrivate.delete(`users/${userId}`);
+  async getUser(userId: number): Promise<any> {
+    return await axiosPrivate.get(`users/${userId}`);
+  }
+
+  async updateUser(userId: number, reqBody: FormData): Promise<any> {
+    return await axiosPrivate.patch(`users/${userId}`, reqBody, {
+      headers: { "Content-Type": "multipart/form-data" },
+      withCredentials: true,
+    });
+  }
+
+  async deleteUser(userId: number, password?: string): Promise<void> {
+    const reqData: DeleteUserRequest = { password: password || "" };
+    await axiosPrivate.delete(`users/${userId}`, { data: reqData });
   }
 }
 

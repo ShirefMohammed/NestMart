@@ -144,6 +144,10 @@ export const updateUser: ExpressHandler<
     const { name, country, city, phone, oldPassword, password } = req.body;
 
     if (userInfo._id !== +req.params.userId) {
+      if (req?.file?.filename) {
+        await deleteFile("avatars", req.file.filename);
+      }
+
       return res.status(401).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
@@ -153,6 +157,10 @@ export const updateUser: ExpressHandler<
     const user: User = await db.findUserById(userInfo._id);
 
     if (!user) {
+      if (req?.file?.filename) {
+        await deleteFile("avatars", req.file.filename);
+      }
+      
       return res.status(404).send({
         statusText: httpStatusText.FAIL,
         message: "Account is not found.",

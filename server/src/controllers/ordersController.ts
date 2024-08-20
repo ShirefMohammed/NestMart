@@ -135,7 +135,7 @@ export const createOrder: ExpressHandler<
     // Check order items productId existence
     for (const orderItem of req.body.orderItems) {
       const isOrderItemProductFound = await db.findProductById(
-        orderItem.productId,
+        orderItem.productId!,
         "_id",
         false,
       );

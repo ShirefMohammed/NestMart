@@ -808,13 +808,7 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async getCartProducts(
-    userId: number,
-    order?: number,
-    limit?: number,
-    skip?: number,
-    selectedFields?: string,
-  ): Promise<any> {
+  async getCartProducts(userId: number, selectedFields?: string): Promise<any> {
     try {
       const productsIdsRows = await this.db.all(
         `SELECT productId FROM Users_Carts WHERE userId = ?`,
@@ -833,10 +827,7 @@ export class sqliteDB implements Datastore {
       const productsQuery = `
         SELECT ${selectedFields ? selectedFields : "*"} 
         FROM Products 
-        WHERE _id IN (${productsIds.map(() => "?").join(",")}) 
-        ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
-        ${limit ? `LIMIT ${limit}` : ""} 
-        ${skip ? `OFFSET ${skip}` : ""}
+        WHERE _id IN (${productsIds.map(() => "?").join(",")})
       `;
 
       const products = await this.db.all(productsQuery, ...productsIds);

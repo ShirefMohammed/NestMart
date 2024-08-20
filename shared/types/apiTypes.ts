@@ -188,7 +188,7 @@ export interface GetOrderResponse {
 }
 
 export interface CreateOrderRequest {
-  orderItems: Pick<OrderItem, "productId" | "quantity" | "totalPrice">[];
+  orderItems: Partial<Pick<OrderItem, "productId" | "quantity" | "totalPrice">>[];
 }
 export interface CreateOrderResponse {
   createdOrder: Order;

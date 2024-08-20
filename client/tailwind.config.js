@@ -16,8 +16,8 @@ export default {
     },
     extend: {
       colors: {
-        main: 'var(--main-color)',
-        text: 'var(--second-color)',
+        main: 'var(--main)',
+        text: 'var(--text)',
         lightGreen: 'var(--light-green)',
         heavyGray: 'var(--heavy-gray)',
         current: 'currentColor',
