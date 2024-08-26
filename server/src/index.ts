@@ -53,7 +53,7 @@ dotenv.config();
     express.static(path.join(__dirname, "database", "uploads")),
   );
 
-  // Routes
+  // Routes - HealthZ
   app.get("/", (_, res: Response) => {
     res.sendFile(path.join(__dirname, "views", "index.html"));
   });

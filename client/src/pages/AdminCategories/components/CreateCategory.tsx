@@ -4,8 +4,8 @@ import { MoonLoader } from "react-spinners";
 import { CreateCategoryResponse } from "@shared/types/apiTypes";
 import { Category } from "@shared/types/entitiesTypes";
 
-import { categoriesAPI } from "../../../../api/categoriesAPI";
-import { useNotify } from "../../../../hooks";
+import { categoriesAPI } from "../../../api/categoriesAPI";
+import { useNotify } from "../../../hooks";
 
 const CreateCategory = ({ setCategories, setOpenCreateCategory }) => {
   const [categoryTitle, setCategoryTitle] = useState<string>("");
@@ -48,7 +48,7 @@ const CreateCategory = ({ setCategories, setOpenCreateCategory }) => {
     <section className="py-14 px-4 md:px-6 2xl:px-20 2xl:container 2xl:mx-auto text-body bg-whiten dark:bg-boxdark-2 dark:text-bodydark relative top-2/4 -translate-y-1/2">
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark w-fit sm:w-100">
         <header className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-          <h3 className="font-bold text-black dark:text-white">Create Category</h3>
+          <h2 className="font-bold text-black dark:text-white">Create Category</h2>
         </header>
 
         <form

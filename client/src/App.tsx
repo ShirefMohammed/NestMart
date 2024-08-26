@@ -15,6 +15,7 @@ import {
   AuthWrapper,
   CategoryProducts,
   Chat,
+  ErrorForbidden,
   ErrorNoResourceFound,
   ErrorNoServerResponse,
   ErrorNoTFoundPage,
@@ -25,6 +26,7 @@ import {
   Product,
   SearchProduct,
   UserCart,
+  UserNotifications,
   UserOrders,
   UserProfile,
   UserSettings,
@@ -41,7 +43,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<PersistLogin socket={socket} />}>
-            {/* Auth Routes - Public */}
+            {/* Auth Routes - Public Routes */}
             <Route path="/auth" element={<AuthWrapper />}>
               <Route index element={<Navigate to="login" />} />
               <Route path="login" element={<AuthLogin />} />
@@ -49,8 +51,8 @@ function App() {
               <Route path="forgetPassword" element={<AuthForgetPassword />} />
             </Route>
 
-            {/* Public Routes */}
             <Route path="/*" element={<MainWrapper />}>
+              {/* Public Routes */}
               <Route index element={<Home />} />
               <Route path="home" element={<Home />} />
 
@@ -58,6 +60,7 @@ function App() {
               <Route path="products/search" element={<SearchProduct />} />
               <Route path="products/:productId" element={<Product />} />
 
+              {/* Protected Routes */}
               <Route
                 element={
                   <RequireAuth
@@ -65,38 +68,41 @@ function App() {
                   />
                 }
               >
-                <Route path="cart" element={<UserCart />} />
+                <Route path="cart" element={<UserCart socket={socket} />} />
                 <Route path="orders" element={<UserOrders />} />
+                <Route path="notifications" element={<UserNotifications />} />
                 <Route path="users/:userId/profile" element={<UserProfile />} />
                 <Route path="settings" element={<UserSettings />} />
               </Route>
 
+              {/* Error Handler Routes - Public Routes */}
+              <Route path="noServerResponse" element={<ErrorNoServerResponse />} />
+              <Route path="serverError" element={<ErrorServerError />} />
+              <Route path="unauthorized" element={<ErrorUnauthorized />} />
+              <Route path="forbidden" element={<ErrorForbidden />} />
+              <Route path="noResourceFound" element={<ErrorNoResourceFound />} />
               <Route path="*" element={<ErrorNoTFoundPage />} />
             </Route>
 
-            {/* Error Handler Routes - Public */}
-            <Route path="/noServerResponse" element={<ErrorNoServerResponse />} />
-            <Route path="/serverError" element={<ErrorServerError />} />
-            <Route path="/unauthorized" element={<ErrorUnauthorized />} />
-            <Route path="/noResourceFound" element={<ErrorNoResourceFound />} />
-
             {/* Chat Routes - Protected Routes */}
             <Route
+              path="/chat"
               element={
                 <RequireAuth
                   allowedRoles={[ROLES_LIST.User, ROLES_LIST.Admin, ROLES_LIST.SuperAdmin]}
                 />
               }
             >
-              <Route path="/chat" element={<Chat socket={socket} />} />
-              <Route path="/chat/:chatId" element={<Chat socket={socket} />} />
+              <Route index element={<Chat socket={socket} />} />
+              <Route path=":chatId" element={<Chat socket={socket} />} />
             </Route>
 
-            {/* AdminDashboard - Protected Routes */}
+            {/* Admin Dashboard - Protected Routes */}
             <Route
+              path="/admin"
               element={<RequireAuth allowedRoles={[ROLES_LIST.Admin, ROLES_LIST.SuperAdmin]} />}
             >
-              <Route path="/admin" element={<AdminWrapper />}>
+              <Route element={<AdminWrapper />}>
                 <Route index element={<AdminDashboard />} />
 
                 <Route path="dashboard" element={<AdminDashboard />} />

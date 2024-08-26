@@ -108,3 +108,8 @@ export interface OrderNotification {
   sender?: User;
   receiver?: User;
 }
+
+export interface Notifications {
+  messagesNotifications: MessageNotification[];
+  ordersNotifications: OrderNotification[];
+}

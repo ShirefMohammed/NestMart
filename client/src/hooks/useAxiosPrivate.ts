@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { axiosPrivate } from "../api/axios";
 import { StoreState } from "../store/store";
 import { useLogout, useRefreshToken } from "./";
+import { httpStatusText } from "../utils/httpStatusText";
 
 const useAxiosPrivate = () => {
   const accessToken = useSelector((state: StoreState) => state.accessToken);
@@ -27,8 +28,8 @@ const useAxiosPrivate = () => {
       async (error) => {
         const prevRequest = error?.config;
         if (
-          error?.response?.status === 403 &&
-          error?.response?.data?.status === "AccessTokenExpiredError" &&
+          error?.response?.status === 401 &&
+          error?.response?.data?.status === httpStatusText.AccessTokenExpiredError &&
           !prevRequest?.sent
         ) {
           try {
@@ -38,8 +39,8 @@ const useAxiosPrivate = () => {
             return axiosPrivate(prevRequest);
           } catch (refreshError) {
             if (
-              refreshError?.response?.status === 403 &&
-              refreshError?.response?.data?.status === "RefreshTokenExpiredError"
+              refreshError?.response?.status === 401 &&
+              refreshError?.response?.data?.status === httpStatusText.RefreshTokenExpiredError
             ) {
               logout();
             }

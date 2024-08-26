@@ -48,5 +48,5 @@ export interface UsersDao {
     selectedFields?: string,
   ): Promise<any[]>;
 
-  getUnverifiedUsers(selectedFields?: string): Promise<any>;
+  getUnverifiedUsers(selectedFields?: string): Promise<any[]>;
 }

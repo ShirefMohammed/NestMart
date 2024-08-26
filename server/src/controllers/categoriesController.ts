@@ -20,6 +20,7 @@ import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
 import { createImagesUrl } from "../utils/createImagesUrl";
 import { deleteFile } from "../utils/deleteFile";
+import { deleteImages } from "../utils/deleteImages";
 import handleImageQuality from "../utils/handleImageQuality";
 import { httpStatusText } from "../utils/httpStatusText";
 
@@ -139,7 +140,7 @@ export const createCategory: ExpressHandler<
     if (isCategoryFound) {
       await deleteFile("categories", req.file.filename);
 
-      return res.status(400).send({
+      return res.status(409).send({
         statusText: httpStatusText.FAIL,
         message: "Category with same title already exists.",
       });
@@ -181,6 +182,10 @@ export const updateCategory: ExpressHandler<
     );
 
     if (!category) {
+      if (req?.file?.filename) {
+        await deleteFile("categories", req.file.filename);
+      }
+
       return res.status(404).send({
         statusText: httpStatusText.FAIL,
         message: "Category is not found.",
@@ -260,10 +265,30 @@ export const deleteCategory: ExpressHandler<
       });
     }
 
-    /* Deleting category will throw server error if any entity reference it */
-    await db.deleteCategory(+req.params.categoryId);
+    // Get all category products and delete them
+    const allCategoryProducts: Product[] = await db.getCategoryProducts(
+      +req.params.categoryId,
+    );
 
+    for (const product of allCategoryProducts) {
+      // Delete the product from every cart
+      await db.removeProductFromCarts(+product._id);
+
+      // Update orders which contains this product
+      await db.updateOrdersAfterDeletingProduct(+product._id);
+
+      // Delete product images
+      await deleteImages("products", product.images);
+
+      // Delete the product
+      await db.deleteProduct(+product._id);
+    }
+
+    // Delete category images
     await deleteFile("categories", category.image);
+
+    // Delete the category
+    await db.deleteCategory(+req.params.categoryId);
 
     res.sendStatus(204);
   } catch (err) {

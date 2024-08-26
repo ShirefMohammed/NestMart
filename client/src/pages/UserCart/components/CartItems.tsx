@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { PuffLoader } from "react-spinners";
+import { Socket } from "socket.io-client";
 
 import { CreateOrderResponse } from "@shared/types/apiTypes";
 import { Product } from "@shared/types/entitiesTypes";
@@ -12,7 +13,7 @@ import { OrderItem, ordersAPI } from "../../../api/ordersAPI";
 import { useNotify } from "../../../hooks";
 import { removeFromCart } from "../../../store/slices/cartSlice";
 
-const CartItems = ({ cartProducts }: { cartProducts: Product[] }) => {
+const CartItems = ({ cartProducts, socket }: { cartProducts: Product[]; socket: Socket }) => {
   const [orderItems, setOrderItems] = useState<any[]>([]);
   const [createOrderLoad, setCreateOrderLoad] = useState<boolean>(false);
   const notify = useNotify();
@@ -42,7 +43,7 @@ const CartItems = ({ cartProducts }: { cartProducts: Product[] }) => {
 
       const data: CreateOrderResponse = res.data.data;
 
-      console.log(data);
+      socket.emit("sendNotification", data.orderNotification);
 
       notify("success", "Order is created");
     } catch (err) {
@@ -60,7 +61,7 @@ const CartItems = ({ cartProducts }: { cartProducts: Product[] }) => {
   return (
     <section>
       {/* Title */}
-      <h3 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Your Cart</h3>
+      <h2 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Your Cart</h2>
 
       {/* Cart Products Table */}
       <div className="relative overflow-x-auto">
@@ -186,10 +187,7 @@ const ProductRow = ({ product, orderItems, setOrderItems }) => {
 
   return (
     <tr className="border-b border-slate-300 text-sm text-body bg-white font-normal">
-      <th
-        scope="row"
-        className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap"
-      >
+      <th scope="row" className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap">
         <img className="w-10 h-10 rounded-md" src={productData.images[0]} alt="" />
       </th>
 

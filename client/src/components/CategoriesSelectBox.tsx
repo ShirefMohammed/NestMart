@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { GetCategoriesResponse } from "@shared/types/apiTypes";
 import { Category } from "@shared/types/entitiesTypes";
 
-import { categoriesAPI } from "../../api/categoriesAPI";
-import { useHandleErrors } from "../../hooks";
+import { categoriesAPI } from "../api/categoriesAPI";
+import { useHandleErrors } from "../hooks";
 
 const CategoriesSelectBox = ({ selectedCategoryId, setSelectedCategoryId }) => {
   const [categories, setCategories] = useState<Category[]>([]);

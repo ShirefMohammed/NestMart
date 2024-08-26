@@ -2,27 +2,26 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Outlet } from "react-router-dom";
 
-import { GetCartProductsResponse } from "@shared/types/apiTypes";
+import { GetCartProductsResponse, GetNotificationsResponse } from "@shared/types/apiTypes";
+import { MessageNotification, OrderNotification } from "@shared/types/entitiesTypes";
 
 import { FirstReqLoadingMsg } from "../";
 import { cartAPI } from "../../api/cartAPI";
+import { notificationsAPI } from "../../api/notificationsAPI";
 import NestMartLogo from "../../assets/NestMartLogo.png";
-import { useAxiosPrivate, useHandleErrors, useRefreshToken } from "../../hooks";
+import { useAxiosPrivate, useRefreshToken } from "../../hooks";
 import { setCart } from "../../store/slices/cartSlice";
 import { pushNotification, setNotifications } from "../../store/slices/notificationsSlice";
 import { StoreState } from "../../store/store";
 import style from "./PersistLogin.module.css";
 
-// TODO: Handle notifications type and socket in PersistLogin
 const PersistLogin = ({ socket }) => {
   const currentUser = useSelector((state: StoreState) => state.currentUser);
   const accessToken = useSelector((state: StoreState) => state.accessToken);
-
-  const [refreshLoad, setRefreshLoad] = useState(true);
-
+  const [refreshLoad, setRefreshLoad] = useState<boolean>(true);
+  /* This is important as PersistLogin will not unmount so here req and res interceptors will added globally */
+  useAxiosPrivate();
   const refresh = useRefreshToken();
-  const handleErrors = useHandleErrors();
-  const axiosPrivate = useAxiosPrivate();
   const dispatch = useDispatch();
 
   // Using refresh api to fetch currentUser data
@@ -51,7 +50,7 @@ const PersistLogin = ({ socket }) => {
         const data: GetCartProductsResponse = res.data.data;
         dispatch(setCart(data.products));
       } catch (err) {
-        handleErrors(err);
+        console.log(err);
       }
     };
 
@@ -63,10 +62,11 @@ const PersistLogin = ({ socket }) => {
     const fetchNotifications = async () => {
       try {
         if (!accessToken) return;
-        const res = await axiosPrivate.get(`/notifications`);
-        dispatch(setNotifications(res.data.data));
+        const res = await notificationsAPI.getNotifications(1, 10);
+        const data: GetNotificationsResponse = res.data.data;
+        dispatch(setNotifications(data.notifications));
       } catch (err) {
-        handleErrors(err);
+        console.log(err);
       }
     };
 
@@ -82,9 +82,9 @@ const PersistLogin = ({ socket }) => {
     }
   }, [currentUser]);
 
-  // TODO: Receive notification event
+  // Receive notification event
   useEffect(() => {
-    socket.on("receiveNotification", (notification) => {
+    socket.on("receiveNotification", (notification: MessageNotification | OrderNotification) => {
       dispatch(pushNotification(notification));
     });
 
@@ -99,12 +99,11 @@ const PersistLogin = ({ socket }) => {
         // If no need to remember currentUser
         !currentUser?.persist ? (
           <Outlet />
-        ) : // If refresh is loading to fetch accessToken by jwt
+        ) : // If refresh is loading to fetch currentUser and accessToken by refresh jwt
         refreshLoad ? (
           <div className={style.loading_container}>
-            {/* Server First Request Loading Message */}
-            <FirstReqLoadingMsg />
-            <img src={NestMartLogo} alt="Logo" />
+            <FirstReqLoadingMsg /> {/* Server First Request Loading Message */}
+            <img src={NestMartLogo} alt="NestMart Logo" />
             <div className={style.creator}>
               <span>Created by</span>
               <Link to="https://shiref-mohammed.onrender.com/">Shiref Mohammed</Link>

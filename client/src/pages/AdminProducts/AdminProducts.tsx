@@ -1,7 +1,7 @@
 import { faEye, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
 import { GetProductsResponse, SearchProductsResponse } from "@shared/types/apiTypes";
@@ -10,8 +10,8 @@ import { Product } from "@shared/types/entitiesTypes";
 import { productsAPI } from "../../api/productsAPI";
 import { AdminBreadcrumb, GlassWrapper } from "../../components";
 import { useHandleErrors, useNotify, useQuery } from "../../hooks";
-import CreateProduct from "./components/CreateProduct/CreateProduct";
-import UpdateProduct from "./components/UpdateProduct/UpdateProduct";
+import CreateProduct from "./components/CreateProduct";
+import UpdateProduct from "./components/UpdateProduct";
 
 const AdminProducts = () => {
   const query = useQuery(); /* For default states */
@@ -360,13 +360,13 @@ const ProductRow = ({
       <td className="px-6 py-4 whitespace-nowrap">{productData.categoryId}</td>
 
       <td className="px-6 py-4 w-32 whitespace-nowrap">
-        <a
-          href={`products/${productData._id}`}
+        <Link
+          to={`/products/${productData._id}`}
           title="view product details"
           className="text-blue-600 dark:text-blue-500 mr-4"
         >
           <FontAwesomeIcon icon={faEye} />
-        </a>
+        </Link>
 
         <button
           type="button"

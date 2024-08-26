@@ -13,7 +13,7 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from "@shared/types/apiTypes";
-import { User } from "@shared/types/entitiesTypes";
+import { Chat, User } from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
@@ -105,7 +105,7 @@ export const getUser: ExpressHandler<GetUserRequest, GetUserResponse> = async (
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -143,12 +143,13 @@ export const updateUser: ExpressHandler<
     const userInfo: AccessTokenUserInfo = res.locals.userInfo;
     const { name, country, city, phone, oldPassword, password } = req.body;
 
+    // Only account owner can make updates
     if (userInfo._id !== +req.params.userId) {
       if (req?.file?.filename) {
         await deleteFile("avatars", req.file.filename);
       }
 
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -156,11 +157,12 @@ export const updateUser: ExpressHandler<
 
     const user: User = await db.findUserById(userInfo._id);
 
+    // Confirm if user not found
     if (!user) {
       if (req?.file?.filename) {
         await deleteFile("avatars", req.file.filename);
       }
-      
+
       return res.status(404).send({
         statusText: httpStatusText.FAIL,
         message: "Account is not found.",
@@ -242,7 +244,6 @@ export const updateUser: ExpressHandler<
   }
 };
 
-// TODO: Delete all user related resources
 export const deleteUser: ExpressHandler<
   DeleteUserRequest,
   DeleteUserResponse
@@ -256,7 +257,7 @@ export const deleteUser: ExpressHandler<
       userInfo.role !== ROLES_LIST.Admin &&
       userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -296,18 +297,41 @@ export const deleteUser: ExpressHandler<
       const isPasswordMatch = await bcrypt.compare(password, user.password);
 
       if (!isPasswordMatch) {
-        return res.status(401).send({
+        return res.status(403).send({
           statusText: httpStatusText.FAIL,
           message: "Wrong password",
         });
       }
     }
 
-    // Delete cart items
-    // Delete orders
-    // Delete notifications
-    // Delete messages
-    // Delete chats
+    // Delete user (messages, orders) notifications
+    await db.deleteAllUserNotifications(+req.params.userId);
+
+    // Remove user's cart items
+    await db.removeAllFromCart(+req.params.userId);
+
+    // Delete user orders
+    await db.deleteAllUserOrders(+req.params.userId);
+
+    // Delete user (customer) chat and messages
+    const customerChat: Chat = await db.findChatByCustomerId(
+      +req.params.userId,
+      "_id",
+    );
+
+    if (customerChat?._id) {
+      await db.updateChat(customerChat._id, {
+        lastMsgId: null,
+        lastNotReadMsgId: null,
+      });
+      await db.deleteChatMessages(customerChat._id);
+      await db.deleteChat(customerChat._id);
+    }
+
+    // Delete user avatar
+    if (user.avatar !== "defaultAvatar.png") {
+      await deleteFile("avatars", user.avatar);
+    }
 
     // Delete this user
     await db.deleteUser(+req.params.userId);

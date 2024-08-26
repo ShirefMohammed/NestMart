@@ -2,7 +2,7 @@ import fsPromises from "fs/promises";
 import path from "path";
 
 export const deleteFile = async (
-  destDir: string,
+  destDir: "avatars" | "categories" | "products",
   filename: string,
 ): Promise<void> => {
   try {

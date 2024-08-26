@@ -5,6 +5,7 @@ import sqlite3 from "sqlite3";
 import {
   Category,
   Chat,
+  Order,
   OrderItem,
   Product,
   User,
@@ -316,7 +317,7 @@ export class sqliteDB implements Datastore {
     limit?: number,
     skip?: number,
     selectedFields?: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       return this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Users 
@@ -353,7 +354,7 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async getUnverifiedUsers(selectedFields?: string): Promise<any> {
+  async getUnverifiedUsers(selectedFields?: string): Promise<any[]> {
     try {
       return this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Users WHERE isVerified = false`,
@@ -454,7 +455,7 @@ export class sqliteDB implements Datastore {
     limit?: number,
     skip?: number,
     selectedFields?: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       return this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Categories 
@@ -474,7 +475,7 @@ export class sqliteDB implements Datastore {
     limit?: number,
     skip?: number,
     selectedFields?: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       return this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Categories 
@@ -485,7 +486,7 @@ export class sqliteDB implements Datastore {
         `%${searchKey}%`,
       );
     } catch (err) {
-      console.error("Error in getCategories:", err);
+      console.error("Error in searchCategories:", err);
       throw err;
     }
   }
@@ -495,7 +496,7 @@ export class sqliteDB implements Datastore {
     order?: number,
     limit?: number,
     skip?: number,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       const products = await this.db.all(
         `SELECT * FROM Products WHERE categoryId = ? 
@@ -708,7 +709,7 @@ export class sqliteDB implements Datastore {
     limit?: number,
     skip?: number,
     selectedFields?: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       const products = await this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Products 
@@ -739,11 +740,11 @@ export class sqliteDB implements Datastore {
     limit?: number,
     skip?: number,
     selectedFields?: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     try {
       const products = await this.db.all(
         `SELECT ${selectedFields ? selectedFields : "*"} FROM Products 
-        WHERE title LIKE ? or desc LIKE ? 
+        WHERE title LIKE ? OR desc LIKE ? 
         ORDER BY createdAt ${order === -1 ? "DESC" : "ASC"} 
         ${limit ? `LIMIT ${limit}` : ""} 
         ${skip ? `OFFSET ${skip}` : ""}`,
@@ -804,6 +805,27 @@ export class sqliteDB implements Datastore {
       );
     } catch (err) {
       console.error("Error in removeFromCart:", err);
+      throw err;
+    }
+  }
+
+  async removeAllFromCart(userId: number): Promise<void> {
+    try {
+      await this.db.run("DELETE FROM Users_Carts WHERE userId = ?", userId);
+    } catch (err) {
+      console.error("Error in removeAllFromCart:", err);
+      throw err;
+    }
+  }
+
+  async removeProductFromCarts(productId: number): Promise<void> {
+    try {
+      await this.db.run(
+        "DELETE FROM Users_Carts WHERE productId = ?",
+        productId,
+      );
+    } catch (err) {
+      console.error("Error in removeAllFromCart:", err);
       throw err;
     }
   }
@@ -914,7 +936,7 @@ export class sqliteDB implements Datastore {
         totalOrderPrice += orderItem.totalPrice;
       }
 
-      if (!totalOrderPrice || totalOrderPrice === 0) return;
+      // if (!totalOrderPrice || totalOrderPrice === 0) return;
 
       const result = await this.db.run(
         "INSERT INTO Orders (creatorId, totalPrice, createdAt) VALUES (?,?,?)",
@@ -940,12 +962,61 @@ export class sqliteDB implements Datastore {
     }
   }
 
+  async updateOrdersAfterDeletingProduct(productId: number): Promise<void> {
+    try {
+      const allOrdersItems: OrderItem[] = await this.db.all(
+        "SELECT * FROM Orders_Items WHERE productId = ?",
+        productId,
+      );
+
+      for (const orderItem of allOrdersItems) {
+        const order: Order = await this.findOrderById(orderItem.orderId);
+
+        await this.db.run(
+          "DELETE FROM Orders_Items WHERE orderId = ? AND productId = ?",
+          order._id,
+          productId,
+        );
+
+        await this.db.run(
+          `UPDATE Orders SET totalPrice = ? WHERE _id = ?`,
+          order.totalPrice - orderItem.totalPrice,
+          order._id,
+        );
+      }
+    } catch (err) {
+      console.error("Error in updateOrdersAfterDeletingProduct:", err);
+      throw err;
+    }
+  }
+
   async deleteOrder(orderId: number): Promise<void> {
     try {
       await this.db.run("DELETE FROM Orders_Items WHERE orderId = ?", orderId);
       await this.db.run("DELETE FROM Orders WHERE _id = ?", orderId);
     } catch (err) {
       console.error("Error in deleteOrder:", err);
+      throw err;
+    }
+  }
+
+  async deleteAllUserOrders(creatorId: number): Promise<void> {
+    try {
+      const allUserOrders: Order[] = await this.db.all(
+        `SELECT _id from Orders WHERE creatorId = ?`,
+        creatorId,
+      );
+
+      for (const order of allUserOrders) {
+        await this.db.run(
+          "DELETE FROM Orders_Items WHERE orderId = ?",
+          order._id,
+        );
+
+        await this.db.run("DELETE FROM Orders WHERE _id = ?", order._id);
+      }
+    } catch (err) {
+      console.error("Error in deleteAllUserOrders:", err);
       throw err;
     }
   }
@@ -1152,6 +1223,7 @@ export class sqliteDB implements Datastore {
   }
 
   async findLastMessageBeforeTime(
+    chatId: number,
     createdAt: number,
     selectedFields?: string,
   ): Promise<any> {
@@ -1160,10 +1232,11 @@ export class sqliteDB implements Datastore {
         `
         SELECT ${selectedFields ? selectedFields : "*"}
         FROM Messages
-        WHERE createdAt < ?
+        WHERE chatId = ? AND createdAt < ?
         ORDER BY createdAt DESC
         LIMIT 1
       `,
+        chatId,
         createdAt,
       );
     } catch (err) {
@@ -1214,7 +1287,7 @@ export class sqliteDB implements Datastore {
     }
   }
 
-  async getChatMessages(chatId: number): Promise<any> {
+  async getChatMessages(chatId: number): Promise<any[]> {
     try {
       return this.db.all(`SELECT * FROM Messages WHERE chatId = ?`, chatId);
     } catch (err) {
@@ -1242,6 +1315,44 @@ export class sqliteDB implements Datastore {
         return this.db.get(
           `SELECT ${selectedFields ? selectedFields : "*"} FROM Orders_Notifications WHERE _id = ?`,
           notificationId,
+        );
+      }
+
+      return null;
+    } catch (err) {
+      console.error("Error in findNotificationById:", err);
+      throw err;
+    }
+  }
+
+  async findLastNotification(
+    senderId: number,
+    receiverId: number,
+    type: "message" | "order",
+    selectedFields?: string,
+  ): Promise<any> {
+    try {
+      if (type === "message") {
+        return this.db.get(
+          `SELECT ${selectedFields ? selectedFields : "*"} 
+          FROM Messages_Notifications 
+          WHERE senderId = ? AND receiverId = ? 
+          ORDER BY createdAt DESC 
+          LIMIT 1`,
+          senderId,
+          receiverId,
+        );
+      }
+
+      if (type === "order") {
+        return this.db.get(
+          `SELECT ${selectedFields ? selectedFields : "*"} 
+          FROM Orders_Notifications 
+          WHERE senderId = ? AND receiverId = ? 
+          ORDER BY createdAt DESC 
+          LIMIT 1`,
+          senderId,
+          receiverId,
         );
       }
 
@@ -1285,11 +1396,6 @@ export class sqliteDB implements Datastore {
         `SELECT * FROM ${type === "message" ? "Messages_Notifications" : "Orders_Notifications"} 
         WHERE _id = ?`,
         result.lastID,
-      );
-
-      createdNotification.sender = await this.findUserById(
-        createdNotification.senderId,
-        "_id, name, email, avatar",
       );
 
       return createdNotification;
@@ -1343,6 +1449,25 @@ export class sqliteDB implements Datastore {
     }
   }
 
+  async deleteAllUserNotifications(userId: number): Promise<void> {
+    try {
+      await this.db.run(
+        `DELETE FROM Messages_Notifications WHERE senderId = ? OR receiverId = ?`,
+        userId,
+        userId,
+      );
+
+      await this.db.run(
+        `DELETE FROM Orders_Notifications WHERE senderId = ? OR receiverId = ?`,
+        userId,
+        userId,
+      );
+    } catch (err) {
+      console.error("Error in deleteNotification:", err);
+      throw err;
+    }
+  }
+
   async getNotifications(
     receiverId: number,
     limit?: number,
@@ -1351,37 +1476,23 @@ export class sqliteDB implements Datastore {
     try {
       const messagesNotifications = await this.db.all(
         `SELECT * FROM Messages_Notifications WHERE receiverId = ? 
+        ORDER BY createdAt DESC 
         ${limit ? `LIMIT ${limit}` : ""} 
         ${skip ? `OFFSET ${skip}` : ""}`,
         receiverId,
       );
-
-      for (const notification of messagesNotifications) {
-        notification.sender = await this.findUserById(
-          notification.senderId,
-          "_id, name, email, avatar",
-        );
-        delete notification.senderId;
-      }
 
       const ordersNotifications = await this.db.all(
         `SELECT * FROM Orders_Notifications WHERE receiverId = ? 
+        ORDER BY createdAt DESC 
         ${limit ? `LIMIT ${limit}` : ""} 
         ${skip ? `OFFSET ${skip}` : ""}`,
         receiverId,
       );
 
-      for (const notification of ordersNotifications) {
-        notification.sender = await this.findUserById(
-          notification.senderId,
-          "_id, name, email, avatar",
-        );
-        delete notification.senderId;
-      }
-
       return {
-        messages: messagesNotifications,
-        orders: ordersNotifications,
+        messagesNotifications: messagesNotifications,
+        ordersNotifications: ordersNotifications,
       };
     } catch (err) {
       console.error("Error in getNotifications:", err);

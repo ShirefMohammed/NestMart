@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { StoreState } from "client/src/store/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { BeatLoader, MoonLoader } from "react-spinners";
 
 import {
@@ -42,6 +42,7 @@ const SelectedChat = ({ chats, setChats, socket }) => {
 
   const handleErrors = useHandleErrors();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // If isCurrentUserCustomer create chat and navigate to it
   useEffect(() => {
@@ -57,7 +58,10 @@ const SelectedChat = ({ chats, setChats, socket }) => {
 
         const newChat: Chat = data.chat;
 
-        navigate(`/chat/${newChat._id}`);
+        navigate(`/chat/${newChat._id}`, {
+          state: { from: location },
+          replace: true,
+        });
       } catch (err) {
         handleErrors(err);
       } finally {
@@ -134,14 +138,21 @@ const SelectedChat = ({ chats, setChats, socket }) => {
   // If isCurrentUserCustomer update selectedChat.lastNotReadMsg to null
   useEffect(() => {
     const updateChatLastNotReadMsg = async () => {
-      if (selectedChat?._id && isCurrentUserCustomer && selectedChat.lastNotReadMsgId) {
-        const reqBody: UpdateChatRequest = { lastNotReadMsgId: null };
-        await chatsAPI.updateChatLastNotReadMsg(selectedChat?._id, reqBody);
-      }
+      if (!selectedChat?._id) return;
+      const reqBody: UpdateChatRequest = { lastNotReadMsgId: null };
+      await chatsAPI.updateChatLastNotReadMsg(selectedChat._id, reqBody);
     };
 
-    updateChatLastNotReadMsg();
-  }, [selectedChat]);
+    if (isCurrentUserCustomer && selectedChat?.lastNotReadMsgId) {
+      updateChatLastNotReadMsg();
+    }
+
+    return () => {
+      if (isCurrentUserCustomer) {
+        updateChatLastNotReadMsg();
+      }
+    };
+  }, [selectedChat?._id]);
 
   /* Sockets Events */
 

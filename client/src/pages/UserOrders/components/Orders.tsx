@@ -42,7 +42,7 @@ const Orders = () => {
   return (
     <section>
       {/* Title */}
-      <h3 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Your Orders</h3>
+      <h2 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Your Orders</h2>
 
       {/* Orders Table */}
       <div className="relative overflow-x-auto">

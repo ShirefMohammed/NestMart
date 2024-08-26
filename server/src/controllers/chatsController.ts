@@ -1,4 +1,3 @@
-// TODO: Remember messages notifications
 import {
   CreateChatRequest,
   CreateChatResponse,
@@ -17,7 +16,12 @@ import {
   UpdateChatRequest,
   UpdateChatResponse,
 } from "@shared/types/apiTypes";
-import { Chat, Message, User } from "@shared/types/entitiesTypes";
+import {
+  Chat,
+  Message,
+  MessageNotification,
+  User,
+} from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
@@ -88,7 +92,7 @@ export const getChat: ExpressHandler<GetChatRequest, GetChatResponse> = async (
       res.locals.userInfo.role === ROLES_LIST.Admin &&
       res.locals.userInfo.role === ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -163,7 +167,7 @@ export const createChat: ExpressHandler<
         }
 
         if (!customer.isVerified) {
-          return res.status(401).send({
+          return res.status(403).send({
             statusText: httpStatusText.FAIL,
             message: "customer is not verified.",
           });
@@ -277,7 +281,7 @@ export const updateChat: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -342,7 +346,7 @@ export const deleteChat: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -384,7 +388,7 @@ export const getChatMessages: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -392,7 +396,7 @@ export const getChatMessages: ExpressHandler<
 
     const messages: Message[] = await db.getChatMessages(+req.params.chatId);
 
-    // Set forEach msg sender(_id, avatar)
+    // Set forEach msg sender(_id, name, avatar)
     for (const msg of messages) {
       const msgSender: User = await db.findUserById(
         msg.senderId,
@@ -414,7 +418,6 @@ export const getChatMessages: ExpressHandler<
   }
 };
 
-// TODO: Create and send message notification
 export const createMessage: ExpressHandler<
   CreateMessageRequest,
   CreateMessageResponse
@@ -441,7 +444,7 @@ export const createMessage: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -477,10 +480,62 @@ export const createMessage: ExpressHandler<
       lastMsgId: newMessage._id,
     });
 
+    // Create msg notification
+    let notificationSenderId: number = res.locals.userInfo._id;
+    let notificationReceiverId: number;
+
+    // Set receiverId
+    if (
+      res.locals.userInfo.role === ROLES_LIST.Admin ||
+      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
+    ) {
+      notificationReceiverId = chat.customerId;
+    } else {
+      const superAdmin: User = await db.findSuperAdmin("_id");
+      notificationReceiverId = superAdmin._id;
+    }
+
+    // Get last msg notification for (senderId, receiverId)
+    const lastMsgNotification: MessageNotification =
+      await db.findLastNotification(
+        notificationSenderId,
+        notificationReceiverId,
+        "message",
+        "_id, createdAt",
+      );
+
+    if (
+      lastMsgNotification &&
+      Date.now() - lastMsgNotification.createdAt < 24 * 60 * 60 * 1000
+    ) {
+      await db.deleteNotification(lastMsgNotification._id, "message");
+    }
+
+    const messageNotification: MessageNotification =
+      await db.createNotification(
+        notificationSenderId,
+        notificationReceiverId,
+        "message",
+        newMessage._id,
+      );
+
+    if (messageNotification) {
+      messageNotification.sender = await db.findUserById(
+        messageNotification.senderId,
+        "_id, name, email, avatar",
+      );
+
+      if (messageNotification.sender) {
+        messageNotification.sender.avatar = createImagesUrl("avatars", [
+          messageNotification.sender.avatar,
+        ])[0];
+      }
+    }
+
     return res.status(201).send({
       statusText: httpStatusText.SUCCESS,
       message: "",
-      data: { message: newMessage },
+      data: { message: newMessage, messageNotification },
     });
   } catch (err) {
     next(err);
@@ -502,7 +557,7 @@ export const deleteMessage: ExpressHandler<
     }
 
     if (res.locals.userInfo._id !== message.senderId) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -513,6 +568,7 @@ export const deleteMessage: ExpressHandler<
     // Update chat lastMsgId
     if (message._id === chat.lastMsgId) {
       const newLastMsg: Message = await db.findLastMessageBeforeTime(
+        chat._id,
         message.createdAt,
         "_id",
       );
@@ -523,6 +579,7 @@ export const deleteMessage: ExpressHandler<
     // Update chat lastNotReadMsgId
     if (message._id === chat.lastNotReadMsgId) {
       const newLastNotReadMsg: Message = await db.findLastMessageBeforeTime(
+        chat._id,
         message.createdAt,
         "_id",
       );

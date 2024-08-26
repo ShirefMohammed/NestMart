@@ -6,9 +6,9 @@ const BannerSlider = () => {
       className="w-full px-6 py-10 md:px-10 md:py-16 rounded-lg bg-cover bg-center"
       style={{ backgroundImage: `url(${bannerSlider1})` }}
     >
-      <h3 className="mb-5 font-bold text-3xl md:text-5xl max-w-80 md:max-w-115">
+      <h2 className="mb-5 font-bold text-3xl md:text-5xl max-w-80 md:max-w-115">
         Don't miss amazing grocery deals
-      </h3>
+      </h2>
 
       <p className="mb-8 font-medium text-xl text-heavyGray">Sign up for daily newsletter</p>
 

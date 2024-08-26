@@ -34,7 +34,7 @@ const AllCategoriesList = () => {
 
   return (
     <div className="w-full">
-      <h3 className="mb-4 font-bold text-xl">Shop by Categories</h3>
+      <h2 className="mb-4 font-bold text-xl">Shop by Categories</h2>
 
       {!fetchCategoriesLoad ? (
         <ul className="flex gap-4 flex-wrap justify-center md:justify-normal">

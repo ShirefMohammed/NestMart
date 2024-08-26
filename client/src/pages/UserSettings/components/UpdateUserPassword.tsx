@@ -102,16 +102,16 @@ const UpdateUserPassword = ({ currentUser }: { currentUser: User }) => {
               <div className="w-full">
                 <label
                   className="mb-3 block text-sm font-medium text-black"
-                  htmlFor="confirmednewPassword"
+                  htmlFor="confirmedNewPassword"
                 >
                   Confirmed New Password
                 </label>
                 <input
                   className="w-full rounded border border-stroke bg-gray py-3 px-4.5 text-black focus:border-primary focus-visible:outline-none"
                   type="password"
-                  name="confirmednewPassword"
-                  id="confirmednewPassword"
-                  placeholder="Enter your Confirmednew password"
+                  name="confirmedNewPassword"
+                  id="confirmedNewPassword"
+                  placeholder="Enter your ConfirmedNew password"
                   value={confirmedNewPassword}
                   onChange={(e) => setConfirmedNewPassword(e.target.value)}
                   required

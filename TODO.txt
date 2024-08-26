@@ -1,0 +1,17 @@
+Required:
+
+1) Complete PRD after finishing the application.
+
+2) Add snapshots of the app to docs.
+
+4) Add README.MD
+
+Optional:
+
+1) Add tests by jest.
+
+2) Add OAuth.
+
+3) Add order tracking + shipment + payment.
+
+4) Handle limit of chat messages for memory efficient usage.

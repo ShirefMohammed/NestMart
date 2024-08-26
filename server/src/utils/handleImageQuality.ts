@@ -3,7 +3,7 @@ import path from "path";
 import sharp from "sharp";
 
 const handleImageQuality = async (
-  destDir: string,
+  destDir: "avatars" | "categories" | "products",
   inputFileName: string,
   outputFileName: string,
   width: number,

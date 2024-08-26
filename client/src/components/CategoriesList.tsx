@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import { GetCategoriesResponse } from "@shared/types/apiTypes";
 import { Category } from "@shared/types/entitiesTypes";
 
-import { categoriesAPI } from "../../api/categoriesAPI";
-import { useHandleErrors } from "../../hooks";
+import { categoriesAPI } from "../api/categoriesAPI";
+import { useHandleErrors } from "../hooks";
 
 const CategoriesList = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -44,7 +44,7 @@ const CategoriesList = () => {
                 to={`/categories/${category._id}/products`}
                 className="p-2 rounded-md border border-slate-200 flex items-center gap-3 hover:underline"
               >
-                <img src={category.image} alt="" className="w-8 h-8 object-cover rounded-sm" />
+                <img src={category.image} alt="" loading="lazy" className="w-8 h-8 object-cover rounded-sm" />
                 <span className="text-sm">{category.title}</span>
               </Link>
             </li>

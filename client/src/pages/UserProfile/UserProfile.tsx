@@ -71,7 +71,7 @@ const UserProfile = () => {
             </div>
 
             <div className="mt-4">
-              <h3 className="mb-1.5 text-2xl font-semibold text-black">{userProfileData.name}</h3>
+              <h2 className="mb-1.5 text-2xl font-semibold text-black">{userProfileData.name}</h2>
 
               <p className="font-medium mb-1.5">{userProfileData.email}</p>
 

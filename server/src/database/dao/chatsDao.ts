@@ -14,9 +14,9 @@ export interface ChatsDao {
 
   deleteChat(chatId: number): Promise<void>;
 
-  getChats(customerId: number): Promise<any>;
+  getChats(customerId: number): Promise<any[]>;
 
-  getAllChats(): Promise<any>;
+  getAllChats(): Promise<any[]>;
 
   deleteChatMessages(chatId: number): Promise<void>;
 
@@ -25,6 +25,7 @@ export interface ChatsDao {
   findMessageById(messageId: number, selectedFields?: string): Promise<any>;
 
   findLastMessageBeforeTime(
+    chatId: number,
     createdAt: number,
     selectedFields?: string,
   ): Promise<any>;
@@ -39,5 +40,5 @@ export interface ChatsDao {
 
   deleteMessageNotification(messageId: number): Promise<void>;
 
-  getChatMessages(chatId: number): Promise<any>;
+  getChatMessages(chatId: number): Promise<any[]>;
 }

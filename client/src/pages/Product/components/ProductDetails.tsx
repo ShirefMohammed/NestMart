@@ -102,7 +102,7 @@ const ProductDescription = ({ product }: { product: Product }) => {
 
   return (
     <div className="flex-1">
-      <h3 className="text-5xl mt-4 mb-8 max-sm:text-3xl font-bold">{product.title}</h3>
+      <h2 className="text-5xl mt-4 mb-8 max-sm:text-3xl font-bold">{product.title}</h2>
 
       <p>{product.desc}</p>
 

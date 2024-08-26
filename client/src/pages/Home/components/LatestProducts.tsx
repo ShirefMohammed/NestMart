@@ -16,7 +16,7 @@ const LatestProducts = () => {
     try {
       setFetchProductsLoad(true);
 
-      const res = await productsAPI.getProducts(1, 10, "new");
+      const res = await productsAPI.getProducts(1, 20, "new");
 
       const data: GetProductsResponse = res.data.data;
 
@@ -34,7 +34,7 @@ const LatestProducts = () => {
 
   return (
     <div className="w-full">
-      <h3 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Latest Products</h3>
+      <h2 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">Latest Products</h2>
 
       {!fetchProductsLoad ? (
         <ul className="grid gap-4 xsm:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">

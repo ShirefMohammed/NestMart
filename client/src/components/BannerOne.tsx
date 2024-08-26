@@ -1,5 +1,5 @@
-import bannerOneImg1 from "../../assets/banners/bannerOneImg1.png";
-import bannerOneImg2 from "../../assets/banners/bannerOneImg2.png";
+import bannerOneImg1 from "../assets/banners/bannerOneImg1.png";
+import bannerOneImg2 from "../assets/banners/bannerOneImg2.png";
 
 const BannerOne = () => {
   return (
@@ -8,9 +8,9 @@ const BannerOne = () => {
       style={{ backgroundImage: `url(${bannerOneImg1})` }}
     >
       <div>
-        <h3 className="mb-5 font-bold text-3xl md:text-4xl max-w-80 md:max-w-115">
+        <h2 className="mb-5 font-bold text-3xl md:text-4xl max-w-80 md:max-w-115">
           Stay home & get your daily needs form our shop
-        </h3>
+        </h2>
 
         <p className="mb-8 font-medium text-lg text-heavyGray capitalize">
           Start your daily shopping with NestMart
@@ -38,7 +38,7 @@ const BannerOne = () => {
         </form>
       </div>
 
-      <img src={bannerOneImg2} alt="" className="hidden md:block w-100 absolute bottom-0 end-6" />
+      <img src={bannerOneImg2} alt="" loading="lazy" className="hidden md:block w-100 absolute bottom-0 end-6" />
     </div>
   );
 };

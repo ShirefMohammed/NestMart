@@ -1,23 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-let persist = localStorage.getItem("persist");
+import { User } from "@shared/types/entitiesTypes";
+
+let persist: string | boolean | null = localStorage.getItem("persist");
 
 if (persist !== "true" && persist !== "false") {
   localStorage.setItem("persist", "true");
-  persist = "true";
+  persist = true;
 } else if (persist === "true") {
-  persist = "true";
+  persist = true;
 } else {
-  persist = "false";
+  persist = false;
 }
+
+type UserState = Partial<User> & { persist: boolean };
+
+const initialState: UserState = { persist: persist };
 
 const userSlice = createSlice({
   name: "userSlice",
-  initialState: {
-    persist: persist === "true" ? true : false,
-  },
+  initialState: initialState,
   reducers: {
-    setUser: (_, action) => {
+    setUser: (_, action: PayloadAction<UserState>) => {
       return action.payload;
     },
   },

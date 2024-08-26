@@ -4,9 +4,9 @@ import { MoonLoader } from "react-spinners";
 import { CreateProductResponse } from "@shared/types/apiTypes";
 import { Product } from "@shared/types/entitiesTypes";
 
-import { productsAPI } from "../../../../api/productsAPI";
-import { CategoriesSelectBox, MultiImagesUpload } from "../../../../components";
-import { useNotify } from "../../../../hooks";
+import { productsAPI } from "../../../api/productsAPI";
+import { CategoriesSelectBox, MultiImagesUpload } from "../../../components";
+import { useNotify } from "../../../hooks";
 
 const CreateProduct = ({ setProducts, setOpenCreateProduct }) => {
   const [productTitle, setProductTitle] = useState<string>("");
@@ -29,7 +29,6 @@ const CreateProduct = ({ setProducts, setOpenCreateProduct }) => {
         !productTitle ||
         !productDesc ||
         !productPrice ||
-        !productDiscount ||
         !productAvailable ||
         !productCategoryId ||
         productImages.length === 0
@@ -79,7 +78,7 @@ const CreateProduct = ({ setProducts, setOpenCreateProduct }) => {
       <div className="w-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         {/* Header */}
         <header className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-          <h3 className="font-bold text-black dark:text-white">Create Product</h3>
+          <h2 className="font-bold text-black dark:text-white">Create Product</h2>
         </header>
 
         <form

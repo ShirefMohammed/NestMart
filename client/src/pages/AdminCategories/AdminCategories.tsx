@@ -1,7 +1,7 @@
 import { faEye, faPen, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
 import { GetCategoriesResponse, SearchCategoriesResponse } from "@shared/types/apiTypes";
@@ -10,8 +10,8 @@ import { Category } from "@shared/types/entitiesTypes";
 import { categoriesAPI } from "../../api/categoriesAPI";
 import { AdminBreadcrumb, GlassWrapper } from "../../components";
 import { useHandleErrors, useNotify, useQuery } from "../../hooks";
-import CreateCategory from "./components/CreateCategory/CreateCategory";
-import UpdateCategory from "./components/UpdateCategory/UpdateCategory";
+import CreateCategory from "./components/CreateCategory";
+import UpdateCategory from "./components/UpdateCategory";
 
 const AdminCategories = () => {
   const query = useQuery(); /* For default states */
@@ -343,13 +343,13 @@ const CategoryRow = ({
       </td>
 
       <td className="px-6 py-4">
-        <a
-          href={`categories/${categoryData._id}/products`}
+        <Link
+          to={`/categories/${categoryData._id}/products`}
           title="view category details"
           className="text-blue-600 dark:text-blue-500 mr-4"
         >
           <FontAwesomeIcon icon={faEye} />
-        </a>
+        </Link>
 
         <button
           type="button"

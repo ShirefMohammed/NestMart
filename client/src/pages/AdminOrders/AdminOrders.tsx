@@ -10,7 +10,7 @@ import { Order } from "@shared/types/entitiesTypes";
 import { ordersAPI } from "../../api/ordersAPI";
 import { AdminBreadcrumb, GlassWrapper } from "../../components";
 import { useHandleErrors, useNotify, useQuery } from "../../hooks";
-import OrderDetails from "./components/OrderDetails/OrderDetails";
+import OrderDetails from "./components/OrderDetails";
 
 const AdminOrders = () => {
   const query = useQuery(); /* For default states */
@@ -91,6 +91,9 @@ const AdminOrders = () => {
               </th>
               <th scope="col" className="px-6 py-3">
                 Total Price
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Status
               </th>
               <th scope="col" className="px-6 py-3">
                 Actions
@@ -199,6 +202,10 @@ const OrderRow = ({ order, fetchOrders, setOrderDetailsId, setOpenOrderDetails }
 
       <td className="px-6 py-4">
         <div className="text-blue-500 me-2">{orderData.totalPrice}$</div>
+      </td>
+
+      <td className="px-6 py-4">
+        <div className="me-2">Pending ...</div>
       </td>
 
       <td className="px-6 py-4">

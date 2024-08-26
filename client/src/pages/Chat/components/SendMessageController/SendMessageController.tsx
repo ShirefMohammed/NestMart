@@ -37,6 +37,8 @@ const SendMessageController = ({ messages, setMessages, socket }) => {
 
       socket.emit("sendMessage", data.message);
 
+      socket.emit("sendNotification", data.messageNotification);
+
       setNewMessageContent("");
     } catch (err) {
       handleErrors(err);

@@ -1,7 +1,7 @@
 import { faEye, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PuffLoader } from "react-spinners";
 
 import { GetUsersResponse, SearchUsersResponse } from "@shared/types/apiTypes";
@@ -309,13 +309,13 @@ const UserRow = ({ user, socket, searchKey, fetchUsers, searchUsers }) => {
       </td>
 
       <td className="px-6 py-4">
-        <a
-          href={`users/${userData._id}`}
+        <Link
+          to={`/users/${userData._id}/profile`}
           title="view user profile"
           className="text-blue-600 dark:text-blue-500 mr-4"
         >
           <FontAwesomeIcon icon={faEye} />
-        </a>
+        </Link>
 
         <button
           type="button"

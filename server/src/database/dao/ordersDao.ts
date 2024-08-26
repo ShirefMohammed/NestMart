@@ -5,10 +5,16 @@ export interface OrdersDao {
 
   createOrder(
     creatorId: number,
-    orderItems: Partial<Pick<OrderItem, "productId" | "quantity" | "totalPrice">>[],
+    orderItems: Partial<
+      Pick<OrderItem, "productId" | "quantity" | "totalPrice">
+    >[],
   ): Promise<any>;
 
+  updateOrdersAfterDeletingProduct(productId: number): Promise<void>;
+
   deleteOrder(orderId: number): Promise<void>;
+
+  deleteAllUserOrders(creatorId: number): Promise<void>;
 
   deleteOrderNotification(orderId: number): Promise<void>;
 

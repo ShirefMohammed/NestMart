@@ -8,7 +8,7 @@ export const verifyJWT: ExpressHandler<null, null> = async (req, res, next) => {
   const authHeader = req?.headers?.authorization || req?.headers?.Authorization; // "Bearer token"
 
   if (typeof authHeader !== "string" || !authHeader.startsWith("Bearer ")) {
-    return res.status(403).json({
+    return res.status(401).json({
       statusText: httpStatusText.FAIL,
       message: "Invalid access token",
     });
@@ -21,7 +21,7 @@ export const verifyJWT: ExpressHandler<null, null> = async (req, res, next) => {
     process.env.ACCESS_TOKEN_SECRET!,
     async (err: jwt.VerifyErrors | null, decoded: any) => {
       if (err) {
-        return res.status(403).json({
+        return res.status(401).json({
           statusText: httpStatusText.AccessTokenExpiredError,
           message: "Invalid or expired access token",
         });

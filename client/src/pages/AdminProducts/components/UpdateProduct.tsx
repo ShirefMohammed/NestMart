@@ -4,9 +4,9 @@ import { MoonLoader } from "react-spinners";
 import { GetProductResponse, UpdateProductResponse } from "@shared/types/apiTypes";
 import { Product } from "@shared/types/entitiesTypes";
 
-import { productsAPI } from "../../../../api/productsAPI";
-import { CategoriesSelectBox, MultiImagesUpload } from "../../../../components";
-import { useHandleErrors, useNotify } from "../../../../hooks";
+import { productsAPI } from "../../../api/productsAPI";
+import { CategoriesSelectBox, MultiImagesUpload } from "../../../components";
+import { useHandleErrors, useNotify } from "../../../hooks";
 
 const UpdateProduct = ({ updateProductId, setProducts, setOpenUpdateProduct }) => {
   const [productTitle, setProductTitle] = useState<string>("");
@@ -121,7 +121,7 @@ const UpdateProduct = ({ updateProductId, setProducts, setOpenUpdateProduct }) =
         <div className="w-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           {/* Header */}
           <header className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-            <h3 className="font-bold text-black dark:text-white">Update Product</h3>
+            <h2 className="font-bold text-black dark:text-white">Update Product</h2>
           </header>
 
           <form
@@ -166,8 +166,6 @@ const UpdateProduct = ({ updateProductId, setProducts, setOpenUpdateProduct }) =
                     required
                   ></textarea>
                 </div>
-
-                {/* Price */}
 
                 {/* Price */}
                 <div>

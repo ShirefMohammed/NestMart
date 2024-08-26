@@ -29,6 +29,12 @@ const useHandleErrors = () => {
     }
   };
 
+  const handleForbidden = (err: AxiosError) => {
+    if (err?.response?.status === 403) {
+      navigate("/forbidden", { state: { from: location }, replace: true });
+    }
+  };
+
   const handleNoResourceFound = (err: AxiosError) => {
     if (err?.response?.status === 404) {
       navigate("/noResourceFound", {
@@ -42,6 +48,7 @@ const useHandleErrors = () => {
     handleNoServerResponse(err);
     handleServerError(err);
     handleUnauthorized(err);
+    handleForbidden(err);
     handleNoResourceFound(err);
   };
 

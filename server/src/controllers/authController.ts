@@ -138,7 +138,7 @@ export const login: ExpressHandler<LoginRequest, LoginResponse> = async (
     }
 
     if (!user.isVerified) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "Your account is not verified.",
       });
@@ -207,7 +207,7 @@ export const refresh: ExpressHandler<RefreshRequest, RefreshResponse> = async (
       process.env.REFRESH_TOKEN_SECRET!,
       async (err: any, decoded: any) => {
         if (err) {
-          return res.status(403).send({
+          return res.status(401).send({
             statusText: httpStatusText.RefreshTokenExpiredError,
             message: "Refresh token is forbidden",
           });
@@ -320,7 +320,7 @@ export const verifyAccount: RequestHandler<
         );
     } catch (error) {
       return res
-        .status(403)
+        .status(401)
         .send(
           "Verification token has been expired. Go to forget password page to generate a new verification token.",
         );
@@ -414,7 +414,7 @@ export const sendResetPasswordForm: RequestHandler<
         );
     } catch (error) {
       return res
-        .status(403)
+        .status(401)
         .send(
           "Reset password token has been expired. Go to forget password page to generate a new reset password token.",
         );

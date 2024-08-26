@@ -1,6 +1,4 @@
-import { StoreState } from "client/src/store/store";
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import { NavLink, useLocation } from "react-router-dom";
 
 import Logo from "../../../../assets/NestMartLogo.png";
@@ -12,8 +10,6 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
-  const currentUser = useSelector((state: StoreState) => state.currentUser);
-
   const location = useLocation();
   const { pathname } = location;
 

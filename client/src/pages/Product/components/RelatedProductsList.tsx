@@ -40,9 +40,9 @@ const RelatedProductsList = ({ product }: { product: Product | undefined }) => {
         "loading ..."
       ) : products.length > 0 ? (
         <section className="w-full">
-          <h3 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">
+          <h2 className="pb-3 mb-4 border-b border-slate-200 font-bold text-lg">
             Related Products
-          </h3>
+          </h2>
 
           <ul className="grid gap-4 xsm:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
             {products.map((product: Product) => (

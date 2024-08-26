@@ -1,3 +1,0 @@
-// TODO: Delete all user related resources
-// TODO: find super admin
-// TODO: Remember messages notifications

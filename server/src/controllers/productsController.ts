@@ -152,7 +152,7 @@ export const createProduct: ExpressHandler<
     if (isProductWithSameTitleFound) {
       await deleteImages("products", imagesNames);
 
-      return res.status(400).send({
+      return res.status(409).send({
         statusText: httpStatusText.FAIL,
         message: "Product with same title already exists.",
       });
@@ -412,9 +412,17 @@ export const deleteProduct: ExpressHandler<
       });
     }
 
-    await db.deleteProduct(+req.params.productId);
+    // Delete the product from every cart
+    await db.removeProductFromCarts(+req.params.productId);
 
+    // Update orders which contains this product
+    await db.updateOrdersAfterDeletingProduct(+req.params.productId);
+
+    // Delete product images
     await deleteImages("products", product.images);
+
+    // Delete the product
+    await db.deleteProduct(+req.params.productId);
 
     res.sendStatus(204);
   } catch (err) {

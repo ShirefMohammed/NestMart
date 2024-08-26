@@ -2,6 +2,8 @@ import {
   Category,
   Chat,
   Message,
+  MessageNotification,
+  Notifications,
   Order,
   OrderItem,
   OrderNotification,
@@ -230,6 +232,7 @@ export interface GetChatMessagesResponse {
 export type CreateMessageRequest = Pick<Message, "content">;
 export interface CreateMessageResponse {
   message: Message;
+  messageNotification: MessageNotification;
 }
 
 export interface DeleteMessageRequest {}
@@ -238,7 +241,7 @@ export interface DeleteMessageResponse {}
 // Notifications
 export interface GetNotificationsRequest {}
 export interface GetNotificationsResponse {
-  notifications: { messages: Notification[]; orders: Notification[] };
+  notifications: Notifications;
 }
 
 export interface UpdateNotificationRequest {

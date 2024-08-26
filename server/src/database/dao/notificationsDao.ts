@@ -5,6 +5,13 @@ export interface NotificationsDao {
     selectedFields?: string,
   ): Promise<any>;
 
+  findLastNotification(
+    senderId: number,
+    receiverId: number,
+    type: "message" | "order",
+    selectedFields?: string,
+  ): Promise<any>;
+
   createNotification(
     senderId: number,
     receiverId: number,
@@ -21,6 +28,8 @@ export interface NotificationsDao {
     notificationId: number,
     type: "message" | "order",
   ): Promise<void>;
+
+  deleteAllUserNotifications(userId: number): Promise<void>;
 
   getNotifications(
     receiverId: number,

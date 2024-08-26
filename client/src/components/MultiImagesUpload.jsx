@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
-import uploadMultipleImages from "../../assets/uploadMultipleImages.svg";
-import { useNotify } from "../../hooks";
+import uploadMultipleImages from "../assets/uploadMultipleImages.svg";
+import { useNotify } from "../hooks";
 
 const MultiImagesUpload = ({ selectedFiles, setSelectedFiles }) => {
   const fileInputRef = useRef(null);

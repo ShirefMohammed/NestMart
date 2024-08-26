@@ -1,4 +1,4 @@
-export const createImagesUrl = (targetDir: string, images: string[]) => {
+export const createImagesUrl = (targetDir: "avatars" | "categories" | "products", images: string[]) => {
   return images.map((image) => {
     return new URL(
       image,

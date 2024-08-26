@@ -14,6 +14,8 @@ import {
   Order,
   OrderItem,
   OrderNotification,
+  Product,
+  User,
 } from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
@@ -21,8 +23,6 @@ import { ExpressHandler } from "../types/requestHandlerTypes";
 import { createImagesUrl } from "../utils/createImagesUrl";
 import { httpStatusText } from "../utils/httpStatusText";
 import { ROLES_LIST } from "../utils/rolesList";
-
-// TODO: Handle orders notifications for admins too to be like superAdmin.
 
 export const getOrders: ExpressHandler<
   GetOrdersRequest,
@@ -89,7 +89,7 @@ export const getOrder: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -134,7 +134,7 @@ export const createOrder: ExpressHandler<
 
     // Check order items productId existence
     for (const orderItem of req.body.orderItems) {
-      const isOrderItemProductFound = await db.findProductById(
+      const isOrderItemProductFound: Product = await db.findProductById(
         orderItem.productId!,
         "_id",
         false,
@@ -149,25 +149,33 @@ export const createOrder: ExpressHandler<
     }
 
     // Create order
-    const createdOrder = await db.createOrder(
+    const createdOrder: Order = await db.createOrder(
       res.locals.userInfo._id,
       req.body.orderItems!,
     );
 
-    const superAdmin = await db.findSuperAdmin("_id");
+    // Get superAdmin to receive new order notification
+    const superAdmin: User = await db.findSuperAdmin("_id");
 
     // Create order notification
     const orderNotification: OrderNotification = await db.createNotification(
-      superAdmin._id,
       res.locals.userInfo._id,
+      superAdmin._id,
       "order",
       createdOrder._id,
     );
 
-    if (orderNotification.sender) {
-      orderNotification.sender.avatar = createImagesUrl("avatars", [
-        orderNotification.sender.avatar,
-      ])[0];
+    if (orderNotification) {
+      orderNotification.sender = await db.findUserById(
+        orderNotification.senderId,
+        "_id, name, email, avatar",
+      );
+
+      if (orderNotification.sender) {
+        orderNotification.sender.avatar = createImagesUrl("avatars", [
+          orderNotification.sender.avatar,
+        ])[0];
+      }
     }
 
     res.status(201).send({
@@ -199,7 +207,7 @@ export const deleteOrder: ExpressHandler<
       res.locals.userInfo.role !== ROLES_LIST.Admin &&
       res.locals.userInfo.role !== ROLES_LIST.SuperAdmin
     ) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });

@@ -9,9 +9,9 @@ import { PuffLoader } from "react-spinners";
 import { AddToCartResponse } from "@shared/types/apiTypes";
 import { Product } from "@shared/types/entitiesTypes";
 
-import { cartAPI } from "../../api/cartAPI";
-import { useNotify } from "../../hooks";
-import { addToCart as addToCartStore } from "../../store/slices/cartSlice";
+import { cartAPI } from "../api/cartAPI";
+import { useNotify } from "../hooks";
+import { addToCart as addToCartStore } from "../store/slices/cartSlice";
 
 const ProductCard = ({ product }: { product: Product }) => {
   const accessToken = useSelector((state: StoreState) => state.accessToken);
@@ -46,7 +46,7 @@ const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <div className="w-full px-3 py-5 border border-slate-200 rounded-md flex flex-col  justify-between gap-4">
-      <img src={product.images[0]} alt="" className="w-25 m-auto" />
+      <img src={product.images[0]} alt="" loading="lazy" className="w-25 m-auto" />
 
       <Link to={`/products/${product._id}`} className="font-bold hover:underline">
         {product.title}

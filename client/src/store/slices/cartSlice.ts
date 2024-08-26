@@ -4,11 +4,11 @@ import { Product } from "@shared/types/entitiesTypes";
 
 type CartState = Product[];
 
-const initialState: Product[] = [];
+const initialState: CartState = [];
 
 const cartSlice = createSlice({
   name: "cartSlice",
-  initialState,
+  initialState: initialState,
   reducers: {
     setCart: (_, action: PayloadAction<CartState>) => {
       return action.payload;

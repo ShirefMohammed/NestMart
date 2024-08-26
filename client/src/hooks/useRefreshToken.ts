@@ -1,5 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 
+import { RefreshResponse } from "@shared/types/apiTypes";
+
 import axios from "../api/axios";
 import { setAccessToken } from "../store/slices/accessTokenSlice";
 import { setUser } from "../store/slices/userSlice";
@@ -13,10 +15,12 @@ const useRefreshToken = () => {
   const refresh = async () => {
     const res = await axios.get("/auth/refresh", { withCredentials: true });
 
-    dispatch(setUser({ ...currentUser, ...res.data?.data?.user }));
-    dispatch(setAccessToken(res.data?.data?.accessToken));
+    const resData: RefreshResponse = res.data?.data;
 
-    return res.data?.data?.accessToken;
+    dispatch(setUser({ ...currentUser, ...resData?.user }));
+    dispatch(setAccessToken(resData?.accessToken));
+
+    return resData?.accessToken;
   };
 
   return refresh;

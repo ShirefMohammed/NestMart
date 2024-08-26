@@ -4,8 +4,8 @@ import { MoonLoader } from "react-spinners";
 import { GetCategoryResponse, UpdateCategoryResponse } from "@shared/types/apiTypes";
 import { Category } from "@shared/types/entitiesTypes";
 
-import { categoriesAPI } from "../../../../api/categoriesAPI";
-import { useHandleErrors, useNotify } from "../../../../hooks";
+import { categoriesAPI } from "../../../api/categoriesAPI";
+import { useHandleErrors, useNotify } from "../../../hooks";
 
 const UpdateCategory = ({ updateCategoryId, setCategories, setOpenUpdateCategory }) => {
   const [categoryTitle, setCategoryTitle] = useState<string>("");
@@ -77,7 +77,7 @@ const UpdateCategory = ({ updateCategoryId, setCategories, setOpenUpdateCategory
       {!fetchCategoryLoad ? (
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark w-fit sm:w-100">
           <header className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-            <h3 className="font-bold text-black dark:text-white">Update Category</h3>
+            <h2 className="font-bold text-black dark:text-white">Update Category</h2>
           </header>
 
           <form

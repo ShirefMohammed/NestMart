@@ -6,11 +6,18 @@ import {
   UpdateNotificationRequest,
   UpdateNotificationResponse,
 } from "@shared/types/apiTypes";
+import {
+  MessageNotification,
+  Notifications,
+  OrderNotification,
+  User,
+} from "@shared/types/entitiesTypes";
 
 import { db } from "../database";
 import { ExpressHandler } from "../types/requestHandlerTypes";
 import { createImagesUrl } from "../utils/createImagesUrl";
 import { httpStatusText } from "../utils/httpStatusText";
+import { ROLES_LIST } from "../utils/rolesList";
 
 export const getNotifications: ExpressHandler<
   GetNotificationsRequest,
@@ -21,22 +28,50 @@ export const getNotifications: ExpressHandler<
     const page = req.query?.page ? Number(req.query.page) : 1;
     const skip = (page - 1) * limit;
 
-    const notifications = await db.getNotifications(
-      res.locals.userInfo._id,
+    let receiverId: number;
+
+    if (
+      res.locals.userInfo.role === ROLES_LIST.Admin ||
+      res.locals.userInfo.role === ROLES_LIST.SuperAdmin
+    ) {
+      const superAdmin: User = await db.findSuperAdmin("_id");
+      receiverId = superAdmin._id;
+    } else {
+      receiverId = res.locals.userInfo._id;
+    }
+
+    const notifications: Notifications = await db.getNotifications(
+      receiverId,
       limit,
       skip,
     );
 
-    for (const notification of notifications.messages) {
-      notification.sender.avatar = createImagesUrl("avatars", [
-        notification.sender.avatar,
-      ])[0];
+    // Set messages notifications sender data
+    for (const notification of notifications.messagesNotifications) {
+      notification.sender = await db.findUserById(
+        notification.senderId,
+        "_id, name, email, avatar",
+      );
+
+      if (notification.sender) {
+        notification.sender.avatar = createImagesUrl("avatars", [
+          notification.sender.avatar,
+        ])[0];
+      }
     }
 
-    for (const notification of notifications.orders) {
-      notification.sender.avatar = createImagesUrl("avatars", [
-        notification.sender.avatar,
-      ])[0];
+    // Set orders notifications sender data
+    for (const notification of notifications.ordersNotifications) {
+      notification.sender = await db.findUserById(
+        notification.senderId,
+        "_id, name, email, avatar",
+      );
+
+      if (notification.sender) {
+        notification.sender.avatar = createImagesUrl("avatars", [
+          notification.sender.avatar,
+        ])[0];
+      }
     }
 
     res.status(200).send({
@@ -61,11 +96,12 @@ export const updateNotification: ExpressHandler<
       });
     }
 
-    const notification = await db.findNotificationById(
-      +req.params.notificationId,
-      req.body.type!,
-      "receiverId",
-    );
+    const notification: MessageNotification | OrderNotification =
+      await db.findNotificationById(
+        +req.params.notificationId,
+        req.body.type!,
+        "receiverId",
+      );
 
     if (!notification) {
       return res.status(404).send({
@@ -75,7 +111,7 @@ export const updateNotification: ExpressHandler<
     }
 
     if (res.locals.userInfo._id !== notification.receiverId) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });
@@ -109,11 +145,12 @@ export const deleteNotification: ExpressHandler<
       });
     }
 
-    const notification = await db.findNotificationById(
-      +req.params.notificationId,
-      req.body.type!,
-      "receiverId",
-    );
+    const notification: MessageNotification | OrderNotification =
+      await db.findNotificationById(
+        +req.params.notificationId,
+        req.body.type!,
+        "receiverId",
+      );
 
     if (!notification) {
       return res.status(404).send({
@@ -123,7 +160,7 @@ export const deleteNotification: ExpressHandler<
     }
 
     if (res.locals.userInfo._id !== notification.receiverId) {
-      return res.status(401).send({
+      return res.status(403).send({
         statusText: httpStatusText.FAIL,
         message: "You don't have access to this resource.",
       });

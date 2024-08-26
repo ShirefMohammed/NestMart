@@ -40,9 +40,9 @@ const OrderDetails = ({ orderDetailsId }) => {
         <>
           {/* About Order */}
           <header className="flex justify-start item-start space-y-2 flex-col">
-            <h1 className="text-3xl lg:text-4xl font-semibold leading-7 lg:leading-9 text-gray-800">
+            <h2 className="text-3xl lg:text-4xl font-semibold leading-7 lg:leading-9 text-gray-800">
               Order #{order._id}
-            </h1>
+            </h2>
             <p className="text-base font-medium leading-6 text-gray-600">
               {formatOrderDate(order.createdAt)}
             </p>
@@ -52,9 +52,9 @@ const OrderDetails = ({ orderDetailsId }) => {
             <div className="flex flex-col justify-start items-start w-full space-y-4 md:space-y-6 xl:space-y-8">
               {/* Order Items */}
               <section className="flex flex-col justify-start items-start bg-gray-50 px-4 py-4 md:py-6 md:p-6 xl:p-8 w-full text-body bg-white">
-                <p className="text-lg md:text-xl font-semibold leading-6 xl:leading-5 text-gray-800">
+                <h3 className="text-lg md:text-xl font-semibold leading-6 xl:leading-5 text-gray-800">
                   Order Products
-                </p>
+                </h3>
 
                 {order.orderItems?.map((orderItem: OrderItem) => (
                   <OrderItemCard key={orderItem.productId} orderItem={orderItem} />
@@ -103,9 +103,9 @@ const OrderItemCard = ({ orderItem }: { orderItem: OrderItem }) => {
           to={`/products/${orderItem.product?._id}`}
           className="w-full flex flex-col justify-start items-start space-y-8"
         >
-          <h3 className="text-xl xl:text-2xl font-semibold leading-6 text-gray-800">
+          <h4 className="text-xl xl:text-2xl font-semibold leading-6 text-gray-800">
             {orderItem.product?.title}
-          </h3>
+          </h4>
         </Link>
 
         <div className="flex justify-between space-x-8 items-start w-full">

@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import { GetProductsResponse } from "@shared/types/apiTypes";
 import { Product } from "@shared/types/entitiesTypes";
 
-import { productsAPI } from "../../api/productsAPI";
-import { useHandleErrors } from "../../hooks";
+import { productsAPI } from "../api/productsAPI";
+import { useHandleErrors } from "../hooks";
 
 const NewProductsList = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -44,7 +44,7 @@ const NewProductsList = () => {
                 to={`/products/${product._id}`}
                 className="p-2 rounded-md border border-slate-200 flex items-center gap-3 hover:underline"
               >
-                <img src={product.images[0]} alt="" className="w-14 h-14 object-cover rounded-sm" />
+                <img src={product.images[0]} alt="" loading="lazy" className="w-14 h-14 object-cover rounded-sm" />
                 <div>
                   <span className="text-sm text-main font-bold">{product.title}</span>
                   <span className="text-sm text-heavyGray font-bold block">

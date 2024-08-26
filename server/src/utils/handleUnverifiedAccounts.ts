@@ -1,12 +1,17 @@
+import { User } from "@shared/types/entitiesTypes";
+
 import { db } from "../database";
 
+/* setInterval every 1 hour to check unverified users 
+  and delete them if their creation time becomes more than 1 day */
 export const handleUnverifiedAccounts = async () => {
   setInterval(async () => {
     try {
-      const unverifiedUsers = await db.getUnverifiedUsers("_id, createdAt");
+      const unverifiedUsers: User[] =
+        await db.getUnverifiedUsers("_id, createdAt");
 
-      unverifiedUsers.map(async (user: any) => {
-        if (Date.now() - user?.createdAt > 24 * 60 * 60 * 1000) {
+      unverifiedUsers.map(async (user: User) => {
+        if (Date.now() - user.createdAt > 24 * 60 * 60 * 1000) {
           await db.deleteUser(user._id);
         }
       });
