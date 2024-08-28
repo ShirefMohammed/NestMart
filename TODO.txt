@@ -1,12 +1,4 @@
-Required:
-
-1) Complete PRD after finishing the application.
-
-2) Add snapshots of the app to docs.
-
-4) Add README.MD
-
-Optional:
+Future to be added in coming versions:
 
 1) Add tests by jest.
 

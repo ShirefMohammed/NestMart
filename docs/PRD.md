@@ -14,8 +14,7 @@ User forget password method to change your password.
 
 Your password will be encrypted and JWT will be used.
 
-
-## Account settings
+## Account profile and settings
 
 You can update and delete your account also you can upload an photo for you.
 

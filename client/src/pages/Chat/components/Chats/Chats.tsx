@@ -54,7 +54,7 @@ const Chats = ({ chats, setChats, socket }) => {
           <FontAwesomeIcon icon={faChevronLeft} />
         </button>
 
-        <Link to={`/users/${currentUser._id}`} className={style.user_info}>
+        <Link to={`/users/${currentUser._id}/profile`} className={style.user_info}>
           <img src={currentUser.avatar} alt="" />
           <span>{currentUser.name}</span>
         </Link>

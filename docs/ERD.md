@@ -149,7 +149,8 @@ post: /auth/resetPassword
 **Users**:
 
 ```
-get: /users?order=old|new
+get: /users
+get: /users/search
 get: /users/userId
 patch: /users/userId
 delete: /users/userId
@@ -158,18 +159,20 @@ delete: /users/userId
 **Categories**:
 
 ```
-get: /categories?order=old|new
+get: /categories
+get: /categories/search
 post: /categories
 get: /categories/categoryId
 patch: /categories/categoryId
 delete: /categories/categoryId
-get: /categories/categoryId/products?order=old|new
+get: /categories/categoryId/products
 ```
 
 **Products**:
 
 ```
-get: /products?order=old|new|random
+get: /products
+get: /products/search
 post: /products
 get: /products/productId
 patch: /products/productId
@@ -208,8 +211,9 @@ delete: /notifications/notificationId
 Get chats and create new chat:
   get: /chats
   post: /chats
-Get and delete chat:
+Get, update and delete chat:
   get: /chats/chatId
+  patch: /chats/chatId
   delete: /chats/chatId
 Get chat messages and create new message:
   get: /chats/chatId/messages
@@ -229,10 +233,8 @@ Delete message:
 - Node.js
 - Express.js
 - SQLite
-- Firebase (to backup images)
 - Socket.IO (for real-time chat and notifications)
 - JWT for authentication
-- Jest (for testing)
 
 ## Clients
 
@@ -240,7 +242,7 @@ we'll start with a single web client..
 
 The web client will be implemented in React.js.
 
-See Figma/screenshots for details.
+See screenshots for details.
 
 API server will serve a static bundle of the React app.
 

@@ -231,7 +231,7 @@ const SelectedChat = ({ chats, setChats, socket }) => {
             </button>
 
             {!isCurrentUserCustomer ? (
-              <Link to={`/users/${selectedChat.customer?._id}`} className={style.user_info}>
+              <Link to={`/users/${selectedChat.customer?._id}/profile`} className={style.user_info}>
                 <img src={selectedChat.customer?.avatar} alt="" />
                 <span>{selectedChat.customer?.name}</span>
                 <div className={style.typing}>
