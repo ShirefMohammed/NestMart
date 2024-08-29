@@ -132,17 +132,7 @@ Get chats and create new chat:
 Get, update and delete chat:
   get: /chats/chatId
   patch: /chats/chatId
-  delete:
-  ## Installation
-
-### Prerequisites
-- **Node.js**: Ensure you have Node.js installed.
-
-### Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/nestmart.git
-   cd nestmart /chats/chatId
+  delete: /chats/chatId
 Get chat messages and create new message:
   get: /chats/chatId/messages
   post: /chats/chatId/messages
