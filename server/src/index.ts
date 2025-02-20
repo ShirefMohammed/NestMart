@@ -6,7 +6,7 @@ import http from "node:http";
 import path from "node:path";
 import { Server } from "socket.io";
 
-import { allowedOrigins } from "./config/allowedOrigins";
+import { getAllowedOrigins } from "./config/allowedOrigins";
 import { corsOptions } from "./config/corsOptions";
 import { socketController } from "./controllers/socketController";
 import { initDb } from "./database";
@@ -24,7 +24,7 @@ import { handleUnverifiedAccounts } from "./utils/handleUnverifiedAccounts";
 
 dotenv.config();
 
-(async function () {
+export const runServer = async () => {
   // Create server
   const app: Express = express();
   const server = http.createServer(app);
@@ -84,6 +84,7 @@ dotenv.config();
   handleUnverifiedAccounts();
 
   // Socket.IO
+  const allowedOrigins: string[] = getAllowedOrigins();
   const io = new Server(server, {
     pingTimeout: 60000,
     cors: { origin: allowedOrigins },
@@ -97,4 +98,6 @@ dotenv.config();
   server.listen(_PORT, () => {
     console.log(`Server running on ${process.env.SERVER_URL}`);
   });
-})();
+};
+
+runServer();

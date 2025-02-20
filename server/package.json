@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/index.ts",
+    "start": "node dist/server/src/index.js",
+    "build-server": "tsc && npm run copy-files",
+    "copy-files": "copyfiles -u 1 src/database/sql/migrations/**/* dist/server/src",
     "dev": "nodemon ./src/index.ts"
   },
   "keywords": [],
@@ -37,6 +39,7 @@
     "@types/socket.io": "^3.0.2",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "copyfiles": "^2.4.1"
   }
 }
